@@ -38,6 +38,12 @@ jobs:                                    # Sammlung aller unabhängigen Jobs (Bu
       - docker/install-docker-tools      # Installiert Docker CLI und Buildx via Orb
       - setup_remote_docker:             # Aktiviert Remote-Docker zum Bauen von Images
           docker_layer_caching: true     # Schaltet Layer Caching ein für schnellere Builds
+      #- run:                              Ausführen mehrerer Befehle in einem Schritt
+       #   name: "Build und Push Docker Image"
+        #  command: |
+         #   docker build -t byteme.azurecr.io/byteme:latest .
+          #  echo $DOCKER_PASS | docker login byteme.azurecr.io -u $DOCKER_USER --password-stdin
+           # docker push byteme.azurecr.io/byteme:latest
       - run:
         name: "Docker Login & Push"
         command: |
