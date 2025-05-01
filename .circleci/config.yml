@@ -1,59 +1,59 @@
-version: '2.1'                           # Definiert die Config-Syntax-Version von CircleCI (2.1 ermöglicht Orbs und erweiterte Features)
-orbs:                                    # Orbs sind wiederverwendbare Pakete mit vordefinierten Jobs/Commands
-  docker: circleci/docker@2.2.0          # Bindet das offizielle Docker-Orb in Version 2.2.0 ein
+version: '2.1'
+orbs:
+  docker: circleci/docker@2.2.0
 
-jobs:                                    # Sammlung aller unabhängigen Jobs (Build, Test, Deployment…)
-  build:                                 # Job „build“ für das Bauen deiner Java/Maven-Anwendung
-    docker:                              # Executor: Docker-Container als Laufzeitumgebung
-      - image: maven:3.8.1-openjdk-17-slim  # Nutzt ein schlankes Maven-Image mit OpenJDK 17
-    environment:                         # Umgebungsvariablen für den gesamten Job
-      MAVEN_CLI_OPTS: "--batch-mode"     # Maven im Batch-Mode ohne interaktive Eingaben
-    steps:                               # Schritt-für-Schritt-Anweisungen
-      - checkout                         # Klont das Git-Repository in die Arbeitsumgebung
-      - run:                             # Führt einen Shell-Befehl aus
-          name: "Build mit Maven"       # Lesbarer Name für den Build-Step
+jobs:
+  build:
+    docker:
+      - image: maven:3.8.1-openjdk-17-slim
+    environment:
+      MAVEN_CLI_OPTS: "--batch-mode"
+    steps:
+      - checkout
+      - run:
+          name: "Build mit Maven"
           command: mvn $MAVEN_CLI_OPTS \
             -Dvaadin.offlineKey="…" \
             clean package \
-            -Pproduction -e     # Maven-Build: Säubern, Packen, Production-Profil, ausführliches Logging
-      - store_artifacts:                 # Speichert erzeugte Artefakte für spätere Einsicht
-          path: target                  # Verzeichnis mit den erzeugten .jar/.war-Dateien
-          destination: target           # Zielordner in der CircleCI-Oberfläche
+            -Pproduction -e
+      - store_artifacts:
+          path: target
+          destination: target
 
-  test:                                  # Job „test“ für Unit- und Integrationstests
-    docker:                              # Dieselbe Maven/OpenJDK-Umgebung
+  test:
+    docker:
       - image: maven:3.8.1-openjdk-17-slim
     steps:
-      - checkout                         # Wiederholen des Checkout, da jeder Job isoliert läuft
-      - run:                             # Führe Tests aus
+      - checkout
+      - run:
           name: "Maven Tests"
-          command: mvn test -e         # Maven-Testphase, mit ausführlichem Fehler-Logging
-      - store_artifacts:                 # Speichert Test-Reports
-          path: reports                 # Verzeichnis mit Test-Reports (z. B. surefire)
-          destination: reports          # Sichtbar im Artifacts-Tab
+          command: mvn test -e
+      - store_artifacts:
+          path: reports
+          destination: reports
 
-  build-docker-image:                    # Job zum Erzeugen und Pushen eines Docker-Images
+  build-docker-image:
     docker:
-      - image: cimg/azure:2025.01        # Container-Image mit Azure-CLI und Basis-Tools
+      - image: cimg/azure:2025.01
     steps:
-      - checkout                         # Wieder Checkout für Codezugriff
-      - docker/install-docker-tools      # Installiert Docker CLI und Buildx via Orb
-      - setup_remote_docker:             # Aktiviert Remote-Docker zum Bauen von Images
-          docker_layer_caching: true     # Schaltet Layer Caching ein für schnellere Builds
-      - run:                             # Ausführen mehrerer Befehle in einem Schritt
+      - checkout
+      - docker/install-docker-tools
+      - setup_remote_docker:
+          docker_layer_caching: true
+      - run:
           name: "Build und Push Docker Image"
           command: |
-            docker build . -t byteme.azurecr.io/byteme:latest .
+            docker buildx build . -t byteme.azurecr.io/byteme:latest
             echo $DOCKER_PASS \
               | docker login byteme.azurecr.io \
                 -u $DOCKER_USER --password-stdin
             docker push vaadincrm.azurecr.io/byteme:latest
 
-workflows:                               # Definition der Ausführungsreihenfolge der Jobs
-  build-test-and-deploy:                 # Workflow-Name
+workflows:
+  build-test-and-deploy:
     jobs:
-      - build                            # Führe zuerst den Build-Job aus
-      - test:                            # Anschließend den Test-Job
+      - build
+      - test:
           requires:
-            - build                     # – aber nur, wenn Build erfolgreich war
-      - build-docker-image               # Und abschließend das Docker-Image erstellen und pushen
+            - build
+      - build-docker-image
