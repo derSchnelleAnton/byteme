@@ -45,6 +45,7 @@ jobs:                                    # Sammlung aller unabhängigen Jobs (Bu
               --username  $DOCKER_USER \
               --password  $DOCKER_PASS \
               --tenant    $AZURE_TENANT_ID
+              --allow-no-subscriptions
             az acr login --name byteme
       - run:
           name: "Build und Push Docker Image"
