@@ -7,15 +7,13 @@ jobs:                                    # Sammlung aller unabhängigen Jobs (Bu
     docker:                              # Executor: Docker-Container als Laufzeitumgebung
       - image: maven:3.8.1-openjdk-17-slim  # Nutzt ein schlankes Maven-Image mit OpenJDK 17
     environment:                         # Umgebungsvariablen für den gesamten Job
-      MAVEN_CLI_OPTS: "--batch-mode"     # Maven im Batch-Mode ohne interaktive Eingaben
+      MAVEN_CLI_OPTS: "--batch-mode"
+      VAADIN_OFFLINE_KEY: "..." # Maven im Batch-Mode ohne interaktive Eingaben
     steps:                               # Schritt-für-Schritt-Anweisungen
       - checkout                         # Klont das Git-Repository in die Arbeitsumgebung
       - run:                             # Führt einen Shell-Befehl aus
           name: "Build mit Maven"       # Lesbarer Name für den Build-Step
-          command: mvn $MAVEN_CLI_OPTS \
-            -Dvaadin.offlineKey="…" \
-            clean package \
-            -Pproduction -e     # Maven-Build: Säubern, Packen, Production-Profil, ausführliches Logging
+          command: mvn $MAVEN_CLI_OPTS -Dvaadin.offlineKey="$VAADIN_OFFLINE_KEY" clean package -Pproduction -e     # Maven-Build: Säubern, Packen, Production-Profil, ausführliches Logging
       - store_artifacts:                 # Speichert erzeugte Artefakte für spätere Einsicht
           path: target                  # Verzeichnis mit den erzeugten .jar/.war-Dateien
           destination: target           # Zielordner in der CircleCI-Oberfläche
@@ -43,11 +41,9 @@ jobs:                                    # Sammlung aller unabhängigen Jobs (Bu
       - run:                             # Ausführen mehrerer Befehle in einem Schritt
           name: "Build und Push Docker Image"
           command: |
-            docker build . -t byteme.azurecr.io/byteme:latest .
-            echo $DOCKER_PASS \
-              | docker login byteme.azurecr.io \
-                -u $DOCKER_USER --password-stdin
-            docker push vaadincrm.azurecr.io/byteme:latest
+            docker build -t byteme.azurecr.io/byteme:latest .
+            echo $DOCKER_PASS | docker login byteme.azurecr.io -u $DOCKER_USER --password-stdin
+            docker push byteme.azurecr.io/byteme:latest
 
 workflows:                               # Definition der Ausführungsreihenfolge der Jobs
   build-test-and-deploy:                 # Workflow-Name
