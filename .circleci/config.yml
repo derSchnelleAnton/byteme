@@ -8,7 +8,7 @@ jobs:                                    # Sammlung aller unabhängigen Jobs (Bu
       - image: maven:3.8.1-openjdk-17-slim  # Nutzt ein schlankes Maven-Image mit OpenJDK 17
     environment:                         # Umgebungsvariablen für den gesamten Job
       MAVEN_CLI_OPTS: "--batch-mode"
-      VAADIN_OFFLINE_KEY: "..." # Maven im Batch-Mode ohne interaktive Eingaben
+      VAADIN_OFFLINE_KEY: "" # Maven im Batch-Mode ohne interaktive Eingaben #mid-e5897382-b8e79419
     steps:                               # Schritt-für-Schritt-Anweisungen
       - checkout                         # Klont das Git-Repository in die Arbeitsumgebung
       - run:                             # Führt einen Shell-Befehl aus
