@@ -44,7 +44,6 @@ jobs:                                    # Sammlung aller unabhängigen Jobs (Bu
             docker build -t byteme.azurecr.io/byteme:latest .
             echo $DOCKER_PASS | docker login byteme.azurecr.io -u $DOCKER_USER --password-stdin
             docker push byteme.azurecr.io/byteme:latest
-
 workflows:                               # Definition der Ausführungsreihenfolge der Jobs
   build-test-and-deploy:                 # Workflow-Name
     jobs:
