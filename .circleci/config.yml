@@ -43,12 +43,11 @@ jobs:                                    # Sammlung aller unabhängigen Jobs (Bu
       - run:                             # Ausführen mehrerer Befehle in einem Schritt
           name: "Build und Push Docker Image"
           command: |
-            docker build \
-              -t vaadincrm.azurecr.io/vaadincrm:latest .  # Baue Image lokal
+            docker build . -t byteme.azurecr.io/byteme:latest .
             echo $DOCKER_PASS \
-              | docker login vaadincrm.azurecr.io \
-                -u $DOCKER_USER --password-stdin         # Login in Azure Container Registry
-            docker push vaadincrm.azurecr.io/vaadincrm:latest  # Push des Images
+              | docker login byteme.azurecr.io \
+                -u $DOCKER_USER --password-stdin
+            docker push vaadincrm.azurecr.io/byteme:latest
 
 workflows:                               # Definition der Ausführungsreihenfolge der Jobs
   build-test-and-deploy:                 # Workflow-Name

@@ -5,8 +5,8 @@
     <modelVersion>4.0.0</modelVersion>
     <!-- Project from https://start.vaadin.com/project/87328853-7517-4a6f-8cf4-236453c3c2e8 -->
     <groupId>edu.byteme</groupId>
-    <artifactId>my-app</artifactId>
-    <name>my-app</name>
+    <artifactId>byteme</artifactId>
+    <name>byteme</name>
     <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
