@@ -8,12 +8,12 @@ jobs:                                    # Sammlung aller unabhängigen Jobs (Bu
       - image: maven:3.8.1-openjdk-17-slim  # Nutzt ein schlankes Maven-Image mit OpenJDK 17
     environment:                         # Umgebungsvariablen für den gesamten Job
       MAVEN_CLI_OPTS: "--batch-mode"
-      VAADIN_OFFLINE_KEY: "" # Maven im Batch-Mode ohne interaktive Eingaben #mid-e5897382-b8e79419
+      #VAADIN_OFFLINE_KEY: "" # Maven im Batch-Mode ohne interaktive Eingaben #mid-e5897382-b8e79419
     steps:                               # Schritt-für-Schritt-Anweisungen
       - checkout                         # Klont das Git-Repository in die Arbeitsumgebung
       - run:                             # Führt einen Shell-Befehl aus
           name: "Build mit Maven"       # Lesbarer Name für den Build-Step
-          command: mvn $MAVEN_CLI_OPTS -Dvaadin.offlineKey="$VAADIN_OFFLINE_KEY" clean package -Pproduction -e     # Maven-Build: Säubern, Packen, Production-Profil, ausführliches Logging
+          command: mvn $MAVEN_CLI_OPTS clean package -Pproduction -e     # Maven-Build: Säubern, Packen, Production-Profil, ausführliches Logging deprecated command: mvn $MAVEN_CLI_OPTS -Dvaadin.offlineKey="$VAADIN_OFFLINE_KEY" clean package -Pproduction -e
       - store_artifacts:                 # Speichert erzeugte Artefakte für spätere Einsicht
           path: target                  # Verzeichnis mit den erzeugten .jar/.war-Dateien
           destination: target           # Zielordner in der CircleCI-Oberfläche
