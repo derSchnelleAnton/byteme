@@ -43,7 +43,7 @@ jobs:
       - run:
           name: "Build und Push Docker Image"
           command: |
-            docker buildx build . -t byteme.azurecr.io/byteme:latest
+            docker buildx build . -t byteme.azurecr.io/byteme:latest .
             echo $DOCKER_PASS \
               | docker login byteme.azurecr.io \
                 -u $DOCKER_USER --password-stdin
