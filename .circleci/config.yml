@@ -51,6 +51,13 @@ jobs:
             docker build -t byteme.azurecr.io/byteme:latest .
             docker push byteme.azurecr.io/byteme:latest
 
+      - run:
+        name: "Restart Web App to Pull New Image"
+        command: |
+          az webapp restart \
+            --name byteme \
+            --resource-group ByteMe
+
 workflows:
   build-test-and-deploy:
     jobs:
