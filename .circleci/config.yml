@@ -58,4 +58,4 @@ workflows:
       - test:
           requires:
             - build
-      - build-docker-image
+      - build-and-push-docker-image
