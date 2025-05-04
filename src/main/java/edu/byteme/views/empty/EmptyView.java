@@ -22,10 +22,10 @@ public class EmptyView extends VerticalLayout {
         img.setWidth("200px");
         add(img);
 
-        H2 header = new H2("This place intentionally left empty");
+        H2 header = new H2("This site went online on Sunday, 4th of May.");
         header.addClassNames(Margin.Top.XLARGE, Margin.Bottom.MEDIUM);
         add(header);
-        add(new Paragraph("It’s a place where you can grow your own UI 🤗"));
+        add(new Paragraph("Hi Tinsae, Patricia, Marc and Adrian!"));
 
         setSizeFull();
         setJustifyContentMode(JustifyContentMode.CENTER);

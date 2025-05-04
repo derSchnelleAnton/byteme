@@ -11,7 +11,7 @@ jobs:
     steps:
       - checkout
       - run:
-          name: "Build mit Maven"
+          name: "Build with Maven"
           command: mvn $MAVEN_CLI_OPTS clean package -Pproduction -e
       - store_artifacts:
           path: target
@@ -23,13 +23,13 @@ jobs:
     steps:
       - checkout
       - run:
-          name: "Maven Tests"
+          name: "Maven tests"
           command: mvn test -e
       - store_artifacts:
           path: reports
           destination: reports
 
-  build-docker-image:
+  build-and-push-docker-image:
     docker:
       - image: cimg/azure:2025.01
     steps:
@@ -38,7 +38,6 @@ jobs:
       - setup_remote_docker:
           docker_layer_caching: true
 
-      # Direkter Docker-Login bei ACR
       - run:
           name: "Docker Login to ACR"
           command: |
@@ -46,7 +45,6 @@ jobs:
               | docker login byteme.azurecr.io \
                 -u $DOCKER_USER --password-stdin
 
-      # Docker-Image bauen und pushen
       - run:
           name: "Build and Push Docker Image"
           command: |
