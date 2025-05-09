@@ -1,6 +1,5 @@
 package edu.byteme.views;
 
-
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.html.Div;
@@ -28,19 +27,17 @@ import com.vaadin.flow.theme.lumo.LumoUtility.Padding;
 import com.vaadin.flow.theme.lumo.LumoUtility.TextColor;
 import com.vaadin.flow.theme.lumo.LumoUtility.Whitespace;
 import com.vaadin.flow.theme.lumo.LumoUtility.Width;
-import edu.byteme.views.empty.EmptyView;
+import edu.byteme.views.menu.MenuView;
 import org.vaadin.lineawesome.LineAwesomeIcon;
 
-/**
- * The main view is a top-level placeholder for other views.
+/*
+ * MainLayout — top-level layout containing the app navigation header
  */
+
 @Layout
 @AnonymousAllowed
 public class MainLayout extends AppLayout {
 
-    /**
-     * A simple navigation item component, based on ListItem element.
-     */
     public static class MenuItemInfo extends ListItem {
 
         private final Class<? extends Component> view;
@@ -48,13 +45,10 @@ public class MainLayout extends AppLayout {
         public MenuItemInfo(String menuTitle, Component icon, Class<? extends Component> view) {
             this.view = view;
             RouterLink link = new RouterLink();
-            // Use Lumo classnames for various styling
-            link.addClassNames(Display.FLEX, Gap.XSMALL, Height.MEDIUM, AlignItems.CENTER, Padding.Horizontal.SMALL,
-                    TextColor.BODY);
+            link.addClassNames(Display.FLEX, Gap.XSMALL, Height.MEDIUM, AlignItems.CENTER, Padding.Horizontal.SMALL, TextColor.BODY);
             link.setRoute(view);
 
             Span text = new Span(menuTitle);
-            // Use Lumo classnames for various styling
             text.addClassNames(FontWeight.MEDIUM, FontSize.MEDIUM, Whitespace.NOWRAP);
 
             if (icon != null) {
@@ -67,7 +61,6 @@ public class MainLayout extends AppLayout {
         public Class<?> getView() {
             return view;
         }
-
     }
 
     public MainLayout() {
@@ -88,14 +81,12 @@ public class MainLayout extends AppLayout {
         Nav nav = new Nav();
         nav.addClassNames(Display.FLEX, Overflow.AUTO, Padding.Horizontal.MEDIUM, Padding.Vertical.XSMALL);
 
-        // Wrap the links in a list; improves accessibility
         UnorderedList list = new UnorderedList();
         list.addClassNames(Display.FLEX, Gap.SMALL, ListStyleType.NONE, Margin.NONE, Padding.NONE);
         nav.add(list);
 
         for (MenuItemInfo menuItem : createMenuItems()) {
             list.add(menuItem);
-
         }
 
         header.add(layout, nav);
@@ -103,10 +94,8 @@ public class MainLayout extends AppLayout {
     }
 
     private MenuItemInfo[] createMenuItems() {
-        return new MenuItemInfo[]{ //
-                new MenuItemInfo("Empty", LineAwesomeIcon.FILE.create(), EmptyView.class), //
-
+        return new MenuItemInfo[]{
+                new MenuItemInfo("Menu", LineAwesomeIcon.UTENSILS_SOLID.create(), MenuView.class)
         };
     }
-
 }

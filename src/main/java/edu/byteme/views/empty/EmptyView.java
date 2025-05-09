@@ -11,7 +11,6 @@ import com.vaadin.flow.theme.lumo.LumoUtility.Margin;
 import org.vaadin.lineawesome.LineAwesomeIconUrl;
 
 @PageTitle("Empty")
-@Route("")
 @Menu(order = 0, icon = LineAwesomeIconUrl.FILE)
 public class EmptyView extends VerticalLayout {
 
