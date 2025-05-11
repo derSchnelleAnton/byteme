@@ -15,6 +15,7 @@ import edu.byteme.data.repositories.MenuRepository;
 import edu.byteme.views.MainLayout;
 import jakarta.annotation.security.PermitAll;
 import org.springframework.beans.factory.annotation.Autowired;
+import edu.byteme.components.MultiPanel;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,11 +27,12 @@ import java.util.List;
 public class MenuView extends HorizontalLayout {
 
     private final MenuRepository menuRepository;
-    private Div cartPanel = null;
     private final Div menuContainer;
     private final List<MenuItem> cartItems = new ArrayList<>();
     private final VerticalLayout cartContents = new VerticalLayout();
     private final Paragraph cartTotal = new Paragraph();
+    
+    private MultiPanel multiPanel = null;
 
     @Autowired
     public MenuView(MenuRepository menuRepository) {
@@ -38,39 +40,30 @@ public class MenuView extends HorizontalLayout {
         setSizeFull();
         addClassName("menu-view");
 
-        // main menu section
         menuContainer = new Div();
         menuContainer.addClassName("menu-container");
 
-        // top bar with cart button aligned right
         HorizontalLayout topBar = new HorizontalLayout();
         topBar.setWidthFull();
         topBar.setJustifyContentMode(JustifyContentMode.END);
         topBar.setAlignItems(Alignment.CENTER);
 
-        Button cartToggle = new Button("🛒 Cart", click -> {
-            boolean show = !cartPanel.isVisible();
-            cartPanel.setVisible(show);
-            getElement().getClassList().set("cart-open", show);
-        });
+        // Button schaltet Sichtbarkeit des multiPanels
+        Button cartToggle = new Button("🛒 Cart", click -> multiPanel.toggleVisibility());
         topBar.add(cartToggle);
         menuContainer.add(topBar);
 
-        // content inside menu
         Div menuList = new Div();
         menuList.addClassName("menu-list");
         menuContainer.add(menuList);
 
-        // cart side panel
-        cartPanel = new Div();
-        cartPanel.addClassName("cart-panel");
-        cartPanel.setVisible(false);
-        cartPanel.add(cartContents, cartTotal);
+        // Erzeuge neues multiPanel-Objekt
+        multiPanel = new MultiPanel();
 
-        add(menuContainer, cartPanel);
+        add(menuContainer, multiPanel);
         expand(menuContainer);
 
-        // load items
+        // Lade verfügbare Menüpunkte
         menuRepository.findByIsAvailableTrue().forEach(item -> {
             menuList.add(createMenuCard(item));
         });
@@ -84,10 +77,7 @@ public class MenuView extends HorizontalLayout {
         Paragraph desc = new Paragraph(item.getDescription());
 
         Paragraph price = new Paragraph("€" + item.getPrice());
-        Button addToCart = new Button("Add to Cart", e -> {
-            cartItems.add(item);
-            updateCart();
-        });
+        Button addToCart = new Button("Add to Cart", e -> multiPanel.addItem(item));
 
         Div rightSide = new Div(price, addToCart);
         rightSide.addClassName("price-button");

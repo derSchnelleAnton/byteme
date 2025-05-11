@@ -1,0 +1,34 @@
+.cart-item-card {
+    background-color: lightgrey;
+    border-radius: 8px;
+    gap: 0;
+    padding: 0;
+}
+
+.cart-item-picture-container {
+    justify-content: center;
+}
+
+.cart-item-picture {
+    width: 60px;
+    aspect-ratio: 1;
+}
+
+.cart-item-text-container {
+    gap: 0;
+    padding: 0;
+}
+
+.cart-item-name-container {
+    width: 200px;
+    height: 72px;
+}
+
+.cart-item-detail-container {
+    width: 72px;
+    height: 40px;
+    margin-bottom: 12px;
+    display: flex;
+    flex-direction: row;
+    align-content: space-around;
+}
