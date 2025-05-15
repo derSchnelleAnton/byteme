@@ -109,7 +109,7 @@ public class MenuListView  extends VerticalLayout{
         itemLayout.add(textLayout);
 
         // price and button
-        Paragraph price = new Paragraph(item.getPrice()+"$");
+        Paragraph price = new Paragraph(item.getPrice()+"€");
         itemLayout.add(price);
         // button text
         Button actionButton = new Button();

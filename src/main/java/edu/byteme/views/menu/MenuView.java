@@ -70,15 +70,14 @@ public class MenuView extends HorizontalLayout {
             //menuList.add(createMenuCard(item));
         });*/
         List<MenuItem> items = menuRepository.findByIsAvailableTrue();
-        MenuListView orderView = new MenuListView(items);
-        menuContainer.add(orderView);
-        orderView.setActionText("Add to cart");
-        orderView.setMenuItemEvent(item -> {
+        MenuListView menuList = new MenuListView(items);
+        menuContainer.add(menuList);
+        menuList.setActionText("Add to cart");
+        menuList.setMenuItemEvent(item -> {
             if (item!= null) {
                 cartItems.add(item);
                 updateCart();
             }
-            //updateCart();
         });
     }
 
