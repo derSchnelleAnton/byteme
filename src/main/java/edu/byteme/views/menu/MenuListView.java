@@ -14,7 +14,7 @@ import edu.byteme.data.entities.Order;
 import java.util.List;
 
 /**
- * Class OrderView displays details about a single Order
+ * Class MenuListView displays MenuItems in a vertical list view
  * @author  Patricia
  * @author Mark Böhme
  * @author Adrian tiberiu petre
@@ -42,6 +42,8 @@ public class MenuListView  extends VerticalLayout{
         this.setPadding(true);
         // we can add the page style here
         // I am not bothering about it now.
+        // I am thinking if we should use an init function for the following
+        displayItems();
     }
 
 
@@ -145,6 +147,10 @@ public class MenuListView  extends VerticalLayout{
         invalidate();
     }
 
+    // clears and updates canvas. 
+    // for now used to make dynamic setting of UI values possible
+    // will research if there is a better way to do it, 
+    // as this does for the whole canvas
     private void invalidate(){
         // we may need to clear the canvas
         this.removeAll();
