@@ -9,11 +9,14 @@ VALUES
 
 -- users
 INSERT INTO users (id, user_name, email, password, first_name, last_name, role, created_at, updated_at) VALUES
-(1, 'adrian', 'adrian@mci.at', 'pass123', 'Adrian', 'Petre', 'manager', NOW(), NOW()),
-(2, 'anton', 'anton@mci.at', 'pass123', 'Anton', 'Woerndle', 'client', NOW(), NOW()),
-(3, 'marc', 'marc@mci.at', 'pass123', 'Marc', 'Boehme', 'client', NOW(), NOW()),
-(4, 'patricia', 'patricia@mci.at', 'pass123', 'Patricia', 'Fueruter', 'client', NOW(), NOW()),
-(5, 'tinsae', 'tinsae@mci.at', 'pass123', 'Tinsae', 'Ghilay', 'client', NOW(), NOW());
+(101, 'adrian', 'adrian@mci.at', 'pass123', 'Adrian', 'Petre', 'manager', NOW(), NOW()),
+(102, 'anton', 'anton@mci.at', 'pass123', 'Anton', 'Woerndle', 'client', NOW(), NOW()),
+(103, 'marc', 'marc@mci.at', 'pass123', 'Marc', 'Boehme', 'client', NOW(), NOW()),
+
+(105, 'tinsae', 'tinsae@mci.at', 'pass123', 'Tinsae', 'Ghilay', 'client', NOW(), NOW());
+
+INSERT INTO users (id, user_name, email, password) VALUES
+(104, 'patricia', 'patricia@mci.at', '$2a$10$9kZ0XQTCuH8HNYQjypFgZuvqfZW/.NYaeiu0Teu3u5uM9i5q1YJxa');
 
 
 -- menu items

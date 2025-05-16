@@ -16,20 +16,22 @@ import java.util.List;
 @Table(name = "users")
 public class Admin extends User {
 
-    private String role;
+//    private String role;
 
     @OneToMany(mappedBy = "admin", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Order> orders = new ArrayList<>();
 
-    // set admin role
-    public void setRole(String role) {
-        this.role = role;
-    }
+    //ALSO CLIENT NEEDS ROLE - SO I ADDED IT TO USER, AND NOT TO ADMIN
 
-    // get admin role
-    public String getRole() {
-        return role;
-    }
+//    // set admin role
+//    public void setRole(String role) {
+//        this.role = role;
+//    }
+//
+//    // get admin role
+//    public String getRole() {
+//        return role;
+//    }
 
     // return all orders assigned to this admin
     public List<Order> getOrders() {

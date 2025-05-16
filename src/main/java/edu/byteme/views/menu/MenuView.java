@@ -1,5 +1,6 @@
 package edu.byteme.views.menu;
 
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.html.Div;
@@ -10,8 +11,10 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.server.auth.AnonymousAllowed;
 import edu.byteme.data.entities.MenuItem;
 import edu.byteme.data.repositories.MenuRepository;
+import edu.byteme.security.SecurityService;
 import edu.byteme.views.MainLayout;
 import jakarta.annotation.security.PermitAll;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,9 +25,11 @@ import java.util.List;
 @PageTitle("Menu")
 @Route(value = "", layout = MainLayout.class)
 @PermitAll
+@AnonymousAllowed
 @CssImport("./themes/my-app/menu-view.css")
 public class MenuView extends HorizontalLayout {
 
+    private final SecurityService securityService;
     private final MenuRepository menuRepository;
     private Div cartPanel = null;
     private final Div menuContainer;
@@ -33,7 +38,8 @@ public class MenuView extends HorizontalLayout {
     private final Paragraph cartTotal = new Paragraph();
 
     @Autowired
-    public MenuView(MenuRepository menuRepository) {
+    public MenuView(SecurityService securityService, MenuRepository menuRepository) {
+        this.securityService = securityService;
         this.menuRepository = menuRepository;
         setSizeFull();
         addClassName("menu-view");
@@ -85,8 +91,13 @@ public class MenuView extends HorizontalLayout {
 
         Paragraph price = new Paragraph("€" + item.getPrice());
         Button addToCart = new Button("Add to Cart", e -> {
-            cartItems.add(item);
-            updateCart();
+            // Login erzwingen wenn Item in Warenkorb gelegt wird
+            if (securityService.getAuthenticatedUser() == null) {
+                UI.getCurrent().navigate("login");
+            } else {
+                cartItems.add(item);
+                updateCart();
+            }
         });
 
         Div rightSide = new Div(price, addToCart);
