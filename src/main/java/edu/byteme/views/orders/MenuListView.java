@@ -9,9 +9,9 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
  * @author anton Wörndle
  * @author Tinsae Ghilay
  */
-public class OrderView extends VerticalLayout {
+public class MenuListView extends VerticalLayout {
     
 
 
-    public OrderView(){}
+    public MenuListView(){}
 }
