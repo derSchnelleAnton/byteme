@@ -1,4 +1,4 @@
-package edu.byteme.views.orders;
+package edu.byteme.views.menu;
 
 import com.vaadin.flow.component.Unit;
 import com.vaadin.flow.component.button.Button;
@@ -8,12 +8,8 @@ import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.router.PageTitle;
-import com.vaadin.flow.router.Route;
 import edu.byteme.data.entities.MenuItem;
 import edu.byteme.data.entities.Order;
-import edu.byteme.views.MainLayout;
-import jakarta.annotation.security.PermitAll;
 
 import java.util.List;
 
@@ -26,10 +22,9 @@ import java.util.List;
  * @author Tinsae Ghilay
  */
 
-@PageTitle("OrderView Preview")
-@Route(value = "order-view-preview", layout = MainLayout.class)
-@PermitAll
-public class OrderView extends VerticalLayout {
+
+public class MenuListView  extends VerticalLayout{
+
     // list that holds menu items
     List<MenuItem> items;
     // default button text
@@ -41,7 +36,7 @@ public class OrderView extends VerticalLayout {
      * or we can use the constructor with menuItems as parameter which would
      * internally call this constructor and the setter
      **/
-    public OrderView(){
+    public MenuListView(){
         setSizeFull();
         addClassName("menu-view");
         this.setPadding(true);
@@ -49,7 +44,9 @@ public class OrderView extends VerticalLayout {
         // I am not bothering about it now.
     }
 
-    /**
+
+
+     /**
      * constructor
      * @param items menu items that belong to a given order or a basket. this view is intended to be reusable.
      *              by just passing the list of menu items as parameter
@@ -57,7 +54,7 @@ public class OrderView extends VerticalLayout {
      * @see MenuItem
      * @see Order
      **/
-    public OrderView(List<MenuItem> items) {
+    public MenuListView(List<MenuItem> items) {
         this();
         setItems(items);
     }
@@ -82,11 +79,11 @@ public class OrderView extends VerticalLayout {
     void displayItem(MenuItem item) {
         // How I think it will be aligned if we style them in css of course,
         /*
-         *  |-----------==============================-----------------------------|
-         *  | /``````\  | Name                       |                             |
-         *  || IMAGE  | |                            |    price    (button text )  |
-         *  | \______/  | description                |                             |
-         *  |-----------==============================-----------------------------|
+        *  |-----------==============================-----------------------------|
+        *  | /``````\  | Name                       |                             |
+        *  || IMAGE  | |                            |    price    (button text )  |
+        *  | \______/  | description                |                             |
+        *  |-----------==============================-----------------------------|
          */
         // with the above layout in mind.
         // the MenuItem view
@@ -120,7 +117,7 @@ public class OrderView extends VerticalLayout {
         // button click listener
         actionButton.addClickListener(e -> {
             if(this.menuItemEvent != null){
-                menuItemEvent.onClick(item.getId());
+                menuItemEvent.onClick(item);
             }
         });
         itemLayout.add(actionButton);
@@ -167,7 +164,7 @@ public class OrderView extends VerticalLayout {
      * that adds this to its child components
      */
     public interface MenuItemEvent{
-        void onClick(int itemId);
+        void onClick(MenuItem item);
     }
 
     // event handler that we set for this class
@@ -176,4 +173,5 @@ public class OrderView extends VerticalLayout {
     public void setMenuItemEvent(MenuItemEvent menuItemEvent) {
         this.menuItemEvent = menuItemEvent;
     }
+    
 }

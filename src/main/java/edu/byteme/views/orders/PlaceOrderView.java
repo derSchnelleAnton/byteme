@@ -4,6 +4,7 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import edu.byteme.data.entities.MenuItem;
+import edu.byteme.views.menu.MenuListView;
 
 import java.util.List;
 
@@ -19,10 +20,10 @@ public class PlaceOrderView extends VerticalLayout {
         addClassName("place-order-view");
 
         //Reusing OrderView from Tinsae
-        OrderView orderView = new OrderView(items);
-        orderView.setActionText(""); // Kein Button-Text (Buttons -> ausblenden)
-        orderView.setMenuItemEvent(null); // Keine Aktionen nötig
-        add(orderView);
+        MenuListView menuListView = new MenuListView(items);
+        menuListView.setActionText(""); // Kein Button-Text (Buttons -> ausblenden)
+        menuListView.setMenuItemEvent(null); // Keine Aktionen nötig
+        add(menuListView);
 
         HorizontalLayout buttonLayout = new HorizontalLayout();
         buttonLayout.setSpacing(true);

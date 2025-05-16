@@ -3,9 +3,7 @@ package edu.byteme.views.menu;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.html.Div;
-import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.Paragraph;
-import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.PageTitle;
@@ -24,8 +22,6 @@ import java.util.List;
 @PermitAll
 @CssImport("./themes/my-app/menu-view.css")
 public class MenuView extends HorizontalLayout {
-
-    private final MenuRepository menuRepository;
     private Div cartPanel = null;
     private final Div menuContainer;
     private final List<MenuItem> cartItems = new ArrayList<>();
@@ -34,7 +30,6 @@ public class MenuView extends HorizontalLayout {
 
     @Autowired
     public MenuView(MenuRepository menuRepository) {
-        this.menuRepository = menuRepository;
         setSizeFull();
         addClassName("menu-view");
 
@@ -57,9 +52,9 @@ public class MenuView extends HorizontalLayout {
         menuContainer.add(topBar);
 
         // content inside menu
-        Div menuList = new Div();
-        menuList.addClassName("menu-list");
-        menuContainer.add(menuList);
+        //Div menuList = new Div();
+        //menuList.addClassName("menu-list");
+        //menuContainer.add(menuList);
 
         // cart side panel
         cartPanel = new Div();
@@ -71,29 +66,20 @@ public class MenuView extends HorizontalLayout {
         expand(menuContainer);
 
         // load items
-        menuRepository.findByIsAvailableTrue().forEach(item -> {
-            menuList.add(createMenuCard(item));
+        /* menuRepository.findByIsAvailableTrue().forEach(item -> {
+            //menuList.add(createMenuCard(item));
+        });*/
+        List<MenuItem> items = menuRepository.findByIsAvailableTrue();
+        MenuListView orderView = new MenuListView(items);
+        menuContainer.add(orderView);
+        orderView.setActionText("Add to cart");
+        orderView.setMenuItemEvent(item -> {
+            if (item!= null) {
+                cartItems.add(item);
+                updateCart();
+            }
+            //updateCart();
         });
-    }
-
-    private Div createMenuCard(MenuItem item) {
-        Div card = new Div();
-        card.addClassName("menu-card");
-
-        H2 name = new H2(item.getName());
-        Paragraph desc = new Paragraph(item.getDescription());
-
-        Paragraph price = new Paragraph("€" + item.getPrice());
-        Button addToCart = new Button("Add to Cart", e -> {
-            cartItems.add(item);
-            updateCart();
-        });
-
-        Div rightSide = new Div(price, addToCart);
-        rightSide.addClassName("price-button");
-
-        card.add(name, desc, rightSide);
-        return card;
     }
 
     private void updateCart() {
