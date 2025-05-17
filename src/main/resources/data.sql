@@ -100,6 +100,7 @@ INSERT INTO orders (id,admin_id,client_id,status,order_date,delivery_date) VALUE
 (49,1,5,'DELIVERED'  ,DATEADD('DAY',-118,CURRENT_TIMESTAMP),DATEADD('DAY',-118,CURRENT_TIMESTAMP)),
 (50,1,2,'CONFIRMED'  ,DATEADD('DAY',  -2,CURRENT_TIMESTAMP),DATEADD('DAY',  -2,CURRENT_TIMESTAMP));
 
+
 INSERT INTO order_menu (order_id,menu_item_id) VALUES
 ( 6,1),( 6,4),( 6,7),( 6,8),
 ( 7,2),( 7,5),( 7,8),
