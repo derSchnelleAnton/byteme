@@ -149,13 +149,25 @@ public class AdminDashboardView extends VerticalLayout {
     private void showEditDialog(MenuItem item) {
         Dialog dialog = new Dialog();
         dialog.setHeaderTitle("Edit Menu Item");
+        dialog.setWidth("600px");
+        dialog.getElement().getStyle().set("overflow", "hidden"); // prevent scroll bar
+
         TextField name = new TextField("Name", item.getName());
+        name.setWidthFull();
+
         TextField description = new TextField("Description", item.getDescription());
+        description.setWidthFull();
+
         NumberField price = new NumberField("Price");
         price.setValue(item.getPrice());
+        price.setWidthFull();
+
         NumberField discount = new NumberField("Discount");
         discount.setValue(item.getDiscount());
+        discount.setWidthFull();
+
         Checkbox available = new Checkbox("Available", item.isAvailable());
+
         Button save = new Button("Save", ev -> {
             item.setName(name.getValue());
             item.setDescription(description.getValue());
@@ -166,15 +178,22 @@ public class AdminDashboardView extends VerticalLayout {
             dialog.close();
             getUI().ifPresent(ui -> ui.getPage().reload());
         });
+
         Button cancel = new Button("Cancel", ev -> dialog.close());
+
         HorizontalLayout buttons = new HorizontalLayout(save, cancel);
         buttons.setSpacing(true);
         buttons.setPadding(true);
+
         VerticalLayout content = new VerticalLayout(
                 name, description, price, discount, available, buttons
         );
-        content.getStyle().set("margin", "1rem");
+        content.setWidthFull();
+        content.getStyle().set("padding", "1rem");
+        content.getStyle().set("overflow", "hidden");
+
         dialog.add(content);
         dialog.open();
     }
+
 }
