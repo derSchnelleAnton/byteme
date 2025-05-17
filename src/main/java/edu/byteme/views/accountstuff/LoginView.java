@@ -20,7 +20,7 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
 
 
     public LoginView() {
-        System.out.println("LoginView geladen");
+        //System.out.println("LoginView geladen");
 
         addClassName("login-view");
         setSizeFull();

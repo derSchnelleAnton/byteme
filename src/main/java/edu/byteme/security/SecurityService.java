@@ -100,7 +100,7 @@ public class SecurityService {
         // Benutzer automatisch einloggen
         autoLogin(username, rawPassword);
 
-        System.out.println("User signed up and logged in: " + username);
+        //System.out.println("User signed up and logged in: " + username);
 
         // Optional: Erfolgsnachricht kann angezeigt werden, wenn nötig
         return "Registration and login successful.";
