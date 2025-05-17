@@ -34,7 +34,7 @@ VALUES
 INSERT INTO orders (id, admin_id, client_id, status , order_date, delivery_date)
 VALUES
     (1, 1, 5 ,'NEW', NOW(), NOW()),
-    (2, 1, 5 ,'NEW', NOW(), NOW()),
-    (3, 1, 5 ,'NEW', NOW(), NOW()),
-    (4, 1, 5 ,'NEW', NOW(), NOW()),
-    (5, 1, 5 ,'NEW', NOW(), NOW());
+    (2, 1, 5 ,'IN_PROGRESS', NOW(), NOW()),
+    (3, 1, 5 ,'DELIVERED', NOW(), NOW()),
+    (4, 1, 5 ,'CANCELLED', NOW(), NOW()),
+    (5, 1, 5 ,'IN_DELIVERY', NOW(), NOW());

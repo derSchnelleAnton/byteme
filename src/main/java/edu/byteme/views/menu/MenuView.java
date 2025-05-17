@@ -1,7 +1,12 @@
+/**
+ * wa7505@mci4me.at
+ * Missing as of 2025 5 17
+ *  - What happens at checkout, callback checkout button pressed
+ */
+
 package edu.byteme.views.menu;
 
 import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.router.PageTitle;
@@ -20,7 +25,6 @@ import java.util.List;
 @PageTitle("Menu")
 @Route(value = "", layout = MainLayout.class)
 @PermitAll
-
 public class MenuView extends HorizontalLayout {
     private CartComponent cartPanel = new CartComponent();
     private List<MenuItem> cartItems = new ArrayList<>();
@@ -52,16 +56,15 @@ public class MenuView extends HorizontalLayout {
         orderItems = orderRepository.findAll();
 
         // Hand over orders and shopping items to cart to be displayed
-        cartPanel.updateCart(cartItems);
-        cartPanel.updateOrders(orderItems);
+        cartPanel.displayCart(cartItems);
+        cartPanel.displayOrders(orderItems);
 
         // Callback function that is called when the order-button is pressed
         cartPanel.setOnCheckoutClicked(() -> {
             System.out.println("onCheckoutClicked"); // CALLBACK NEREDS TO BE ADDED
         });
 
-        // Callback function that is called when the minus-button is pressed in the sidebar
-        // Removes last item with the respective name in the list so that the order stays correct
+        // Callback function to decrease item count in cart
         cartPanel.setOnRemoveMenuItem(itemToRemove -> {
             for (int i = cartItems.size() - 1; i >= 0; i--) {
                 if (cartItems.get(i).getName().equals(itemToRemove.getName())) {
@@ -69,13 +72,13 @@ public class MenuView extends HorizontalLayout {
                     break;
                 }
             }
-            cartPanel.updateCart(cartItems);
+            cartPanel.displayCart(cartItems);
         });
 
-        // Callback function that is called when the plus-button is pressed in the sidebar
+        // Callback function to increase item count in cart
         cartPanel.setOnAddMenuItem(item -> {
             cartItems.add(item);
-            cartPanel.updateCart(cartItems);
+            cartPanel.displayCart(cartItems);
         });
 
         // Loads items onto the menu
@@ -86,7 +89,7 @@ public class MenuView extends HorizontalLayout {
         orderView.setMenuItemEvent(item -> {
             if (item!= null) {
                 cartItems.add(item);
-                cartPanel.updateCart(cartItems);
+                cartPanel.displayCart(cartItems);
             }
         });
 
