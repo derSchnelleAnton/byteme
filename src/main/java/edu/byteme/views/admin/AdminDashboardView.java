@@ -23,6 +23,7 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.server.Command;
 import com.vaadin.flow.shared.Registration;
 import edu.byteme.data.entities.MenuItem;
 import edu.byteme.data.entities.Order;
@@ -32,8 +33,10 @@ import edu.byteme.services.MenuService;
 import edu.byteme.services.OrderService;
 import edu.byteme.views.MainLayout;
 import jakarta.annotation.security.RolesAllowed;
-import java.time.format.DateTimeFormatter;
-import java.util.List;
+
+import java.time.LocalDateTime;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @PageTitle("Admin")
 @Route(value = "admin", layout = MainLayout.class)
@@ -47,6 +50,7 @@ public class AdminDashboardView extends VerticalLayout {
     private final OrderService orderService;
     private final VerticalLayout central = new VerticalLayout();
     private Registration orderSub;
+    private Registration reportSub;
 
     /* ───────────────────────── ctor ───────────────────────── */
 
@@ -69,14 +73,22 @@ public class AdminDashboardView extends VerticalLayout {
         Tabs tabs = new Tabs();
         Tab menuTab   = new Tab("Menu");
         Tab ordersTab = new Tab("Orders");
-        tabs.add(menuTab, ordersTab);
+        Tab reportsTab= new Tab("Reports");
+        tabs.add(menuTab, ordersTab, reportsTab);
         tabs.setSelectedTab(menuTab);
         tabs.addSelectedChangeListener(e -> {
             central.removeAll();
+            clearSubscriptions();
             if (e.getSelectedTab() == menuTab)   showMenu();
             if (e.getSelectedTab() == ordersTab) showOrders();
+            if (e.getSelectedTab() == reportsTab) showReports();
         });
         add(tabs);
+    }
+
+    private void clearSubscriptions() {
+        if (orderSub  != null) { orderSub.remove();  orderSub  = null; }
+        if (reportSub != null) { reportSub.remove(); reportSub = null; }
     }
 
     /* ───────────────────────── MENU ───────────────────────── */
@@ -213,12 +225,12 @@ public class AdminDashboardView extends VerticalLayout {
         central.add(header("Incoming Orders"));
 
         Grid<Order> grid = new Grid<>(Order.class, false);
-        grid.setDetailsVisibleOnClick(false);                         // fixed expanded
-        grid.addColumn(Order::getId)                                  .setHeader("ID").setAutoWidth(true);
-        grid.addColumn(o -> o.getClient().getUserName())              .setHeader("Client");
-        grid.addComponentColumn(o -> statusBox(o, grid))              .setHeader("Status").setAutoWidth(true);
-        grid.addColumn(o -> o.getMenuItems().size())                  .setHeader("# Items").setAutoWidth(true);
-        grid.addColumn(o -> orderService.getTotalCostOfOrder(o))      .setHeader("Total (€)").setAutoWidth(true);
+        grid.setDetailsVisibleOnClick(false);
+        grid.addColumn(Order::getId)                             .setHeader("ID").setAutoWidth(true);
+        grid.addColumn(o -> o.getClient().getUserName())         .setHeader("Client");
+        grid.addComponentColumn(o -> statusBox(o, grid))         .setHeader("Status").setAutoWidth(true);
+        grid.addColumn(o -> o.getMenuItems().size())             .setHeader("# Items").setAutoWidth(true);
+        grid.addColumn(o -> orderService.getTotalCostOfOrder(o)) .setHeader("Total (€)").setAutoWidth(true);
         grid.setItemDetailsRenderer(new ComponentRenderer<>(this::detailsRenderer));
         grid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
         grid.setSizeFull();
@@ -227,7 +239,7 @@ public class AdminDashboardView extends VerticalLayout {
         central.expand(grid);
 
         refreshOrders(grid);
-        subscribe(grid);
+        subscribeOrders(grid);
     }
 
     private ComboBox<OrderStatus> statusBox(Order o, Grid<Order> grid) {
@@ -238,7 +250,7 @@ public class AdminDashboardView extends VerticalLayout {
         cb.addValueChangeListener(ev -> {
             if (!ev.isFromClient()) return;
             if (ev.getValue() == null || ev.getValue() == o.getStatus()) return;
-            Order updated = orderService.updateStatus(o.getId(), ev.getValue()); // broadcast inside
+            Order updated = orderService.updateStatus(o.getId(), ev.getValue());
             o.setStatus(updated.getStatus());
             UI.getCurrent().access(() -> {
                 grid.getDataProvider().refreshItem(o);
@@ -254,8 +266,7 @@ public class AdminDashboardView extends VerticalLayout {
                 box.add(new Paragraph(mi.getName() + " — " + mi.getPrice() + "€")));
         box.add(new Paragraph("Total: " + orderService.getTotalCostOfOrder(o) + "€"));
         box.add(new Paragraph("Status: " + o.getStatus()));
-        box.add(new Paragraph("Ordered: " +
-                o.getOrderDate().format(DateTimeFormatter.ofPattern("dd MMM yyyy, HH:mm"))));
+        box.add(new Paragraph("Ordered: " + o.getOrderDate().toLocalDate()));
         return box;
     }
 
@@ -265,12 +276,87 @@ public class AdminDashboardView extends VerticalLayout {
         orders.forEach(o -> g.setDetailsVisible(o, true));
     }
 
-    private void subscribe(Grid<Order> g) {
-        if (orderSub != null) orderSub.remove();
-        orderSub = OrderBroadcaster.register(o ->
-                UI.getCurrent().access(() -> refreshOrders(g)));
-        central.addDetachListener(e -> {
-            if (orderSub != null) orderSub.remove();
-        });
+    private void subscribeOrders(Grid<Order> g) {
+        orderSub = OrderBroadcaster.register(o -> UI.getCurrent().access(() -> refreshOrders(g)));
+        central.addDetachListener(e -> { if (orderSub != null) orderSub.remove(); });
+    }
+
+    /* ───────────────────────── REPORTS ───────────────────────── */
+
+    private void showReports() {
+        central.removeAll();
+        central.add(header("Reports"));
+
+        ComboBox<String> period = new ComboBox<>();
+        period.setItems("Daily", "Weekly", "Monthly", "Yearly");
+        period.setValue("Daily");
+
+        Paragraph revenueLabel = new Paragraph();
+        revenueLabel.getStyle().set("font-weight", "bold");
+
+        Grid<BestSellRow> bestGrid = new Grid<>(BestSellRow.class, false);
+        bestGrid.addColumn(BestSellRow::name)   .setHeader("Item");
+        bestGrid.addColumn(BestSellRow::qty)    .setHeader("Sold");
+        bestGrid.addColumn(BestSellRow::income) .setHeader("Revenue (€)");
+        bestGrid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
+        bestGrid.setHeight("300px");
+
+        VerticalLayout wrapper = new VerticalLayout(period, revenueLabel, bestGrid);
+        wrapper.setSpacing(true);
+        wrapper.setPadding(true);
+        central.add(wrapper);
+
+        Runnable refresher = () -> refreshReports(period.getValue(), revenueLabel, bestGrid);
+        period.addValueChangeListener(e -> refresher.run());
+        refresher.run();
+
+        reportSub = OrderBroadcaster.register(o -> UI.getCurrent().access((Command) refresher));
+        central.addDetachListener(e -> { if (reportSub != null) reportSub.remove(); });
+    }
+
+    private record BestSellRow(String name, long qty, double income){}
+
+    private void refreshReports(String period,
+                                Paragraph revenueLabel,
+                                Grid<BestSellRow> bestGrid) {
+
+        List<Order> orders = orderService.getAllOrders();
+        LocalDateTime now = LocalDateTime.now();
+
+        List<Order> filtered = switch (period) {
+            case "Daily"   -> orders.stream()
+                    .filter(o -> o.getOrderDate().toLocalDate().equals(now.toLocalDate()))
+                    .toList();
+            case "Weekly"  -> orders.stream()
+                    .filter(o -> o.getOrderDate().isAfter(now.minusDays(7)))
+                    .toList();
+            case "Monthly" -> orders.stream()
+                    .filter(o -> o.getOrderDate().isAfter(now.minusDays(30)))
+                    .toList();
+            case "Yearly"  -> orders.stream()
+                    .filter(o -> o.getOrderDate().isAfter(now.minusDays(365)))
+                    .toList();
+            default        -> orders;
+        };
+
+        double revenue = filtered.stream()
+                .mapToDouble(orderService::getTotalCostOfOrder)
+                .sum();
+        revenueLabel.setText("Revenue (" + period + "): " + String.format("%.2f", revenue) + " €");
+
+        Map<MenuItem, Long> counts = new HashMap<>();
+        filtered.forEach(o -> o.getMenuItems().forEach(mi ->
+                counts.merge(mi, 1L, Long::sum)));
+
+        List<BestSellRow> rows = counts.entrySet().stream()
+                .map(e -> new BestSellRow(
+                        e.getKey().getName(),
+                        e.getValue(),
+                        e.getKey().getPrice() * e.getValue()))
+                .sorted(Comparator.comparingLong(BestSellRow::qty).reversed())
+                .limit(10)
+                .toList();
+
+        bestGrid.setItems(rows);
     }
 }
