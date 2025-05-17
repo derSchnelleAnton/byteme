@@ -22,6 +22,8 @@ import edu.byteme.data.entities.MenuItem;
 import edu.byteme.services.MenuService;
 import edu.byteme.views.MainLayout;
 import jakarta.annotation.security.RolesAllowed;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
@@ -33,6 +35,9 @@ import java.util.List;
 public class AdminDashboardView extends VerticalLayout {
 
     private final MenuService menuService;
+    @PersistenceContext
+    private EntityManager entityManager;
+    private static boolean sequenceRestarted = false;
 
     @Autowired
     public AdminDashboardView(MenuService menuService) {
@@ -78,7 +83,6 @@ public class AdminDashboardView extends VerticalLayout {
             itemLayout.setSpacing(true);
             itemLayout.setWidthFull();
             itemLayout.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
-            itemLayout.getElement().getStyle().set("border-width", "1px");
 
             Image icon = new Image("icons/icon.png", "Menu item image");
             icon.setWidth(60, Unit.PIXELS);
@@ -123,15 +127,18 @@ public class AdminDashboardView extends VerticalLayout {
         discount.setPlaceholder("Discount");
         Button add = new Button("➕", e -> {
             if (name.isEmpty() || description.isEmpty() || price.isEmpty()) return;
+
             MenuItem item = new MenuItem();
             item.setName(name.getValue());
             item.setDescription(description.getValue());
             item.setPrice(price.getValue());
             item.setDiscount(discount.getValue() != null ? discount.getValue() : 0.0);
             item.setAvailable(true);
+
             menuService.saveItem(item);
             getUI().ifPresent(ui -> ui.getPage().reload());
         });
+
         HorizontalLayout bar = new HorizontalLayout(name, description, price, discount, add);
         bar.setWidthFull();
         bar.setAlignItems(FlexComponent.Alignment.BASELINE);
@@ -149,7 +156,7 @@ public class AdminDashboardView extends VerticalLayout {
         NumberField discount = new NumberField("Discount");
         discount.setValue(item.getDiscount());
         Checkbox available = new Checkbox("Available", item.isAvailable());
-        Button save = new Button("Save", e -> {
+        Button save = new Button("Save", ev -> {
             item.setName(name.getValue());
             item.setDescription(description.getValue());
             item.setPrice(price.getValue());
@@ -159,11 +166,13 @@ public class AdminDashboardView extends VerticalLayout {
             dialog.close();
             getUI().ifPresent(ui -> ui.getPage().reload());
         });
-        Button cancel = new Button("Cancel", e -> dialog.close());
+        Button cancel = new Button("Cancel", ev -> dialog.close());
         HorizontalLayout buttons = new HorizontalLayout(save, cancel);
         buttons.setSpacing(true);
         buttons.setPadding(true);
-        VerticalLayout content = new VerticalLayout(name, description, price, discount, available, buttons);
+        VerticalLayout content = new VerticalLayout(
+                name, description, price, discount, available, buttons
+        );
         content.getStyle().set("margin", "1rem");
         dialog.add(content);
         dialog.open();
