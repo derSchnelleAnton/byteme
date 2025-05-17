@@ -40,7 +40,8 @@ VALUES
 (2, 1, 5 ,'PENDING', NOW(), NOW()),
 (3, 1, 5 ,'CONFIRMED', NOW(), NOW()),
 (4, 1, 5 ,'IN_PROGRESS', NOW(), NOW()),
-(5, 1, 5 ,'DELIVERED', NOW(), NOW());
+(5, 1, 5 ,'DELIVERED', NOW(), NOW()),
+(6, 1, 5 ,'IN_DELIVERY', NOW(), NOW());
 
 
 -- Order-Menu junction table inserts
@@ -56,12 +57,3 @@ INSERT INTO order_menu (order_id, menu_item_id) VALUES
 (4, 8),
 (4, 9),
 (5, 10);
-
--- orders
-INSERT INTO orders (id, admin_id, client_id, status , order_date, delivery_date)
-VALUES
-    (1, 1, 5 ,'NEW', NOW(), NOW()),
-    (2, 1, 5 ,'IN_PROGRESS', NOW(), NOW()),
-    (3, 1, 5 ,'DELIVERED', NOW(), NOW()),
-    (4, 1, 5 ,'CANCELLED', NOW(), NOW()),
-    (5, 1, 5 ,'IN_DELIVERY', NOW(), NOW());

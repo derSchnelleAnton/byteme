@@ -221,7 +221,8 @@ public class CartComponent extends Div {
 
         // Map status enum to text
         String status = switch (String.valueOf(order.getStatus())) {
-            case "NEW" -> "New 🔥";
+            case "PENDING" -> "New 🔥";
+            case "CONFIRMED" -> "Confirmed 👍🏻";
             case "IN_PROGRESS" -> "In Progress 👩🏻‍🍳";
             case "IN_DELIVERY" -> "In Delivery 🚗";
             case "DELIVERED" -> "Delivered ✅";
@@ -244,7 +245,8 @@ public class CartComponent extends Div {
 
         // Click listener for navigation to order
         outerContainer.addClickListener(e -> {
-            UI.getCurrent().navigate(OrderView.class); // SHOULD LINK TO ORDER VIEW OF ORDER
+            System.out.println("Order card clicked");
+            // UI.getCurrent().navigate(OrderView.class); // SHOULD LINK TO ORDER VIEW OF ORDER
         });
 
         // Style card
