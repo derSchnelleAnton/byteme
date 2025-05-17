@@ -9,6 +9,7 @@ import com.vaadin.flow.component.html.ListItem;
 import com.vaadin.flow.component.html.Nav;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.html.UnorderedList;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.router.Layout;
 import com.vaadin.flow.router.RouterLink;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
@@ -28,6 +29,8 @@ import com.vaadin.flow.theme.lumo.LumoUtility.TextColor;
 import com.vaadin.flow.theme.lumo.LumoUtility.Whitespace;
 import com.vaadin.flow.theme.lumo.LumoUtility.Width;
 import edu.byteme.views.menu.MenuView;
+import edu.byteme.views.orders.OrderView;
+
 import org.vaadin.lineawesome.LineAwesomeIcon;
 
 /*
@@ -71,10 +74,10 @@ public class MainLayout extends AppLayout {
         Header header = new Header();
         header.addClassNames(BoxSizing.BORDER, Display.FLEX, FlexDirection.COLUMN, Width.FULL);
 
-        Div layout = new Div();
+        HorizontalLayout layout = new HorizontalLayout();
         layout.addClassNames(Display.FLEX, AlignItems.CENTER, Padding.Horizontal.LARGE);
 
-        H1 appName = new H1("My App");
+        H1 appName = new H1("ByteMe");
         appName.addClassNames(Margin.Vertical.MEDIUM, Margin.End.AUTO, FontSize.LARGE);
         layout.add(appName);
 
@@ -95,7 +98,8 @@ public class MainLayout extends AppLayout {
 
     private MenuItemInfo[] createMenuItems() {
         return new MenuItemInfo[]{
-                new MenuItemInfo("Menu", LineAwesomeIcon.UTENSILS_SOLID.create(), MenuView.class)
+                new MenuItemInfo("Menu", LineAwesomeIcon.UTENSILS_SOLID.create(), MenuView.class),
+                new MenuItemInfo("Orders", LineAwesomeIcon.BOX_OPEN_SOLID.create(), OrderView.class)
         };
     }
 }

@@ -14,7 +14,7 @@ import edu.byteme.data.entities.Order;
 import java.util.List;
 
 /**
- * Class OrderView displays details about a single Order
+ * Class MenuListView displays MenuItems in a vertical list view
  * @author  Patricia
  * @author Mark Böhme
  * @author Adrian tiberiu petre
@@ -81,7 +81,7 @@ public class MenuListView  extends VerticalLayout{
         /*
         *  |-----------==============================-----------------------------|
         *  | /``````\  | Name                       |                             |
-        *  || IMAGE  | |                            |    price    (button text )  |
+        *  || IMAGE  | |                            |        price    ( button )  |
         *  | \______/  | description                |                             |
         *  |-----------==============================-----------------------------|
          */
@@ -109,7 +109,7 @@ public class MenuListView  extends VerticalLayout{
         itemLayout.add(textLayout);
 
         // price and button
-        Paragraph price = new Paragraph(item.getPrice()+"$");
+        Paragraph price = new Paragraph(item.getPrice()+"€");
         itemLayout.add(price);
         // button text
         Button actionButton = new Button();
@@ -145,6 +145,10 @@ public class MenuListView  extends VerticalLayout{
         invalidate();
     }
 
+    // clears and updates canvas. 
+    // for now used to make dynamic setting of UI values possible
+    // will research if there is a better way to do it, 
+    // as this does for the whole canvas
     private void invalidate(){
         // we may need to clear the canvas
         this.removeAll();

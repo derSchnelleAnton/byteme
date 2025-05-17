@@ -30,3 +30,29 @@ VALUES
 (9, 'Tiramisu', 'Coffee-soaked sponge, mascarpone cream', 4.50, 0.00, true, NOW(), NOW()),
 (10, 'Garlic Bread', 'Toasted bread, garlic butter', 3.50, 0.00, true, NOW(), NOW());
 
+
+-- orders
+INSERT INTO orders (id, admin_id, client_id, status , order_date, delivery_date)
+VALUES
+(1, 1, 5 ,'CANCELLED', NOW(), NOW()),
+(2, 1, 5 ,'PENDING', NOW(), NOW()),
+(3, 1, 5 ,'CONFIRMED', NOW(), NOW()),
+(4, 1, 5 ,'IN_PROGRESS', NOW(), NOW()),
+(5, 1, 5 ,'DELIVERED', NOW(), NOW());
+
+
+-- Order-Menu junction table inserts
+INSERT INTO order_menu (order_id, menu_item_id) VALUES
+(1, 1),
+(1, 2),
+(2, 3),
+(2, 4),
+(3, 5),
+(3, 6),
+(3, 7),
+(4, 1),
+(4, 8),
+(4, 9),
+(5, 10);
+
+

@@ -6,3 +6,60 @@
     padding-left: 1em;
     padding-right: 1em;
 }
+vaadin-avatar::part(icon){
+    padding: 6px;
+    margin: 10px;
+    box-sizing: border-box;
+}
+.menu_cover{
+    background-color: lightslategray;
+    margin: 0%;
+    width: 200px;
+    height: 200px;
+    border-radius: 5%;
+}
+
+/* progress */
+#progress-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  padding-top: 30px ; /* space for circles */
+  padding-bottom: 30px;
+  align-content: center;
+}
+
+vaadin-progress-bar {
+  width: 100%;
+  z-index: 1;
+}
+
+/* Circle markers */
+.progress-marker {
+  position: absolute;
+  top: 10px;
+  width: 50px;
+  height: 50px;
+  border: 3px solid #007bff;
+  background-color: aliceblue;
+  background-size:cover;
+  background-repeat: no-repeat;
+  background-position: center;
+  border-radius: 50%;
+  transform: translateX(-50%);
+  z-index: 2;
+}
+
+/* Position markers at 0%, 50%, 100% */
+.progress-marker:nth-of-type(1) { left: 2%;background-image: url("images/cooking.png");}
+.progress-marker:nth-of-type(2) { left: 50%;background-image: url("images/delivery-truck.png");}
+.progress-marker:nth-of-type(3) { left: 98%; background-image: url("images/door.png");}
+
+.total{
+    border: solid 1px black;
+    padding: 30px;
+    border-radius: 30px;
+    justify-content: space-between;
+}
+
