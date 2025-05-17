@@ -112,4 +112,7 @@ public class OrderService {
         OrderBroadcaster.broadcast(saved);
         return saved;
     }
+
+    public void setStatus(Integer id, OrderStatus value) {
+    }
 }

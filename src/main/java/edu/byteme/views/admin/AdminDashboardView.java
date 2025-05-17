@@ -28,6 +28,7 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.shared.Registration;
 import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.component.tabs.Tabs;
+import com.vaadin.flow.component.combobox.ComboBox;
 
 import edu.byteme.data.entities.MenuItem;
 import edu.byteme.data.entities.Order;
@@ -188,24 +189,41 @@ public class AdminDashboardView extends VerticalLayout {
         central.add(buildHeader("Incoming Orders"));
 
         Grid<Order> grid = new Grid<>(Order.class, false);
+        grid.setDetailsVisibleOnClick(false);
+
         grid.addColumn(Order::getId).setHeader("ID").setAutoWidth(true);
         grid.addColumn(o -> o.getClient().getUserName()).setHeader("Client");
-        grid.addColumn(Order::getStatus).setHeader("Status");
-        grid.addColumn(o -> o.getMenuItems().size()).setHeader("# Items");
+
+        grid.addComponentColumn(o -> {
+            ComboBox<OrderStatus> cb = new ComboBox<>();
+            cb.setItems(OrderStatus.values());
+            cb.setValue(o.getStatus());
+            cb.setWidthFull();
+            cb.addValueChangeListener(e -> {
+                if (e.isFromClient() && e.getValue() != null && e.getValue() != o.getStatus()) {
+                    orderService.setStatus(o.getId(), e.getValue());
+                    o.setStatus(e.getValue());
+                    grid.getDataProvider().refreshItem(o);
+                    grid.setDetailsVisible(o, true);
+                }
+            });
+            return cb;
+        }).setHeader("Status").setAutoWidth(true);
+
+        grid.addColumn(o -> o.getMenuItems().size()).setHeader("# Items").setAutoWidth(true);
+        grid.addColumn(o -> orderService.getTotalCostOfOrder(o)).setHeader("Total ($)").setAutoWidth(true);
 
         grid.setItemDetailsRenderer(new ComponentRenderer<>(this::orderDetailRenderer));
         grid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
         grid.setSizeFull();
 
-        grid.addItemClickListener(this::cycleStatus);
-
         central.add(grid);
         central.expand(grid);
 
-        // live push
         refreshOrders(grid);
         subscribe(grid);
     }
+
 
     private VerticalLayout orderDetailRenderer(Order o) {
         VerticalLayout box = new VerticalLayout();
@@ -215,11 +233,8 @@ public class AdminDashboardView extends VerticalLayout {
         return box;
     }
 
-    private void cycleStatus(ItemClickEvent<Order> ev) {
-        Order o = ev.getItem();
-        orderService.nextStage(o.getId());
-        ev.getSource().getDataProvider().refreshAll();
-    }
+
+
 
     /* ─── live updates ── */
     private void subscribe(Grid<Order> grid) {
@@ -232,8 +247,11 @@ public class AdminDashboardView extends VerticalLayout {
     }
 
     private void refreshOrders(Grid<Order> grid) {
-        grid.setItems(orderService.getAllOrders());
+        List<Order> orders = orderService.getAllOrders();
+        grid.setItems(orders);
+        orders.forEach(o -> grid.setDetailsVisible(o, true));
     }
+
 
     /* ─────────────── EDIT DIALOG (unchanged) ───────────────── */
 
