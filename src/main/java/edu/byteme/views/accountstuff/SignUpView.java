@@ -1,18 +1,22 @@
 package edu.byteme.views.accountstuff;
 
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.notification.Notification;
-import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.orderedlayout.*;
 import com.vaadin.flow.component.textfield.EmailField;
+import com.vaadin.flow.component.textfield.NumberField;
 import com.vaadin.flow.component.textfield.PasswordField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
+import com.vaadin.flow.theme.Theme;
 import edu.byteme.security.SecurityService;
 
 @Route(value = "signup")
 @AnonymousAllowed
+@CssImport("./themes/my-app/signin-styles.css")
 public class SignUpView extends VerticalLayout {
 
     private final SecurityService securityService;
@@ -20,57 +24,100 @@ public class SignUpView extends VerticalLayout {
     public SignUpView(SecurityService securityService) {
         this.securityService = securityService;
 
-        System.out.println("SignUpView loaded");
-
-        // Styling for the view
-        addClassName("signup-view");
         setSizeFull();
         setAlignItems(Alignment.CENTER);
         setJustifyContentMode(JustifyContentMode.CENTER);
+        addClassName("signup-view");
 
-        // Layout for registration
-        VerticalLayout layout = new VerticalLayout(
-                new H1("ByteMe Ordering System - Sign Up")
-        );
+        // Titel
+        H1 title = new H1("ByteMe Ordering System");
+        title.addClassName("form-title");
 
-        // Input fields for user data
-        TextField username = new TextField("Username");
-        EmailField email = new EmailField("Email");
-        PasswordField password = new PasswordField("Password");
-        TextField firstName = new TextField("First Name");
-        TextField lastName = new TextField("Last Name");
+        // Pflichtfelder
+        TextField username = new TextField("Username *");
+        EmailField email = new EmailField("Email *");
+        PasswordField password = new PasswordField("Password *");
+        TextField firstName = new TextField("First Name *");
+        TextField lastName = new TextField("Last Name *");
 
-        // Button to register the user
+        username.addClassName("form-item");
+        email.addClassName("form-item");
+        password.addClassName("form-item");
+        firstName.addClassName("form-item");
+        lastName.addClassName("form-item");
+
+        VerticalLayout leftColumn = new VerticalLayout(username, email, password, firstName, lastName);
+        leftColumn.addClassName("form-column");
+        leftColumn.setPadding(false);
+        leftColumn.setSpacing(false);
+
+        // Optionale Felder
+        TextField postalCode = new TextField("Postal Code (Optional)");
+        TextField street = new TextField("Street (Optional)");
+        NumberField houseNumber = new NumberField("House Number (Optional)");
+        houseNumber.setStep(1);
+        TextField phone = new TextField("Phone Number (Optional)");
+
+        postalCode.addClassName("form-item");
+        street.addClassName("form-item");
+        houseNumber.addClassName("form-item");
+        phone.addClassName("form-item");
+
+        VerticalLayout rightColumn = new VerticalLayout(postalCode, street, houseNumber, phone);
+        rightColumn.addClassName("form-column");
+        rightColumn.setPadding(false);
+        rightColumn.setSpacing(false);
+
+        // Formular-Layout
+        HorizontalLayout formLayout = new HorizontalLayout(leftColumn, rightColumn);
+        formLayout.addClassName("form-layout");
+
+        // Button
         Button signupButton = new Button("Sign Up", event -> {
-            // Check if all fields are filled
             if (username.isEmpty() || email.isEmpty() || password.isEmpty() || firstName.isEmpty() || lastName.isEmpty()) {
-                Notification.show("Please fill in all fields!");
+                Notification.show("Please fill in all required fields!");
                 return;
             }
 
-            // Call the SecurityService to register the user
             String result = securityService.signup(
                     username.getValue(),
                     email.getValue(),
                     password.getValue(),
                     firstName.getValue(),
-                    lastName.getValue()
+                    lastName.getValue(),
+                    postalCode.isEmpty() ? null : postalCode.getValue(),
+                    street.isEmpty() ? null : street.getValue(),
+                    houseNumber.isEmpty() ? null : houseNumber.getValue().intValue(),
+                    phone.isEmpty() ? null : phone.getValue()
             );
 
-            // Notify the user of the result
             Notification.show(result);
 
-            // Clear fields if registration is successful
-            if (result.equalsIgnoreCase("User registered successfully!")) {
+            if (result.equalsIgnoreCase("Registration successful.")) {
                 username.clear();
                 email.clear();
                 password.clear();
                 firstName.clear();
                 lastName.clear();
+                postalCode.clear();
+                street.clear();
+                houseNumber.clear();
+                phone.clear();
+
+                getUI().ifPresent(ui -> ui.navigate("login?success=true"));
             }
         });
+        signupButton.addClassName("signup-button");
 
-        // Add all components to the layout
-        add(layout, username, email, password, firstName, lastName, signupButton);
+        // Wrapper für Button
+        HorizontalLayout buttonWrapper = new HorizontalLayout(signupButton);
+        buttonWrapper.setWidthFull();
+        buttonWrapper.setJustifyContentMode(JustifyContentMode.CENTER);
+
+        // Card Layout
+        VerticalLayout cardLayout = new VerticalLayout(title, formLayout, buttonWrapper);
+        cardLayout.addClassName("signup-card");
+
+        add(cardLayout);
     }
 }

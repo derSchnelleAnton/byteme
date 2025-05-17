@@ -9,9 +9,11 @@ import com.vaadin.flow.component.html.ListItem;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.page.Push;
 import com.vaadin.flow.router.Layout;
 import com.vaadin.flow.router.RouterLink;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
+import com.vaadin.flow.theme.Theme;
 import com.vaadin.flow.theme.lumo.LumoUtility.AlignItems;
 import com.vaadin.flow.theme.lumo.LumoUtility.Display;
 import com.vaadin.flow.theme.lumo.LumoUtility.FontSize;
@@ -84,20 +86,36 @@ public class MainLayout extends AppLayout {
         try {
             var user = securityService.getAuthenticatedUser();
             if (user != null) {
+                // Benutzer authentifiziert
                 Span greeting = new Span("Hello " + user.getUsername());
                 Button logoutButton = new Button("Logout", event -> {
                     securityService.logout();
                     UI.getCurrent().getPage().reload();
                 });
-                userInfoLayout.add(greeting, logoutButton);
+
+                // UI-sicherer Zugriff
+                UI ui = UI.getCurrent();
+                ui.access(() -> {
+                    userInfoLayout.removeAll(); // Bereinigung
+                    userInfoLayout.add(greeting, logoutButton); // Hinzufügen neuer UI-Elemente
+                });
             } else {
+                // Benutzer nicht authentifiziert (Login anzeigen)
                 Button loginButton = new Button("Login", event -> UI.getCurrent().navigate("login"));
-                userInfoLayout.add(loginButton);
+
+                UI ui = UI.getCurrent();
+                ui.access(() -> {
+                    userInfoLayout.removeAll();
+                    userInfoLayout.add(loginButton);
+                });
             }
         } catch (Exception e) {
-            // Bei Problemen: nicht eingeloggt behandeln
-            Button loginButton = new Button("Login", event -> UI.getCurrent().navigate("login"));
-            userInfoLayout.add(loginButton);
+            // Fehler behandeln
+            UI.getCurrent().access(() -> {
+                userInfoLayout.removeAll();
+                Button loginButton = new Button("Login", event -> UI.getCurrent().navigate("login"));
+                userInfoLayout.add(loginButton);
+            });
         }
 
         // Platz zwischen Titel und Benutzerinformation

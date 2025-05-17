@@ -28,6 +28,15 @@ public class SecurityConfig extends VaadinWebSecurity {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         super.configure(http);
+
+        // Ignoriert CSRF für Vaadin-Ressourcen
+        http.csrf(csrf -> csrf.ignoringRequestMatchers("/VAADIN/**", "/UIDL/**", "/frontend/**", "/resources/**", "/public/**"));
+
+        // Frame-Optionen deaktivieren, falls eine embedded Anwendung dies benötigt (z. B. H2 Console)
+        http.headers(headers -> headers
+                .frameOptions(frameOptions -> frameOptions.disable()));
+
+        // Login-View einstellen (Vaadin-Integration)
         setLoginView(http, LoginView.class);
     }
 
