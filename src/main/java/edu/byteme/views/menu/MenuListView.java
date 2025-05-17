@@ -1,5 +1,7 @@
 package edu.byteme.views.menu;
 
+import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.ComponentEvent;
 import com.vaadin.flow.component.Unit;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -42,8 +44,6 @@ public class MenuListView  extends VerticalLayout{
         this.setPadding(true);
         // we can add the page style here
         // I am not bothering about it now.
-        // I am thinking if we should use an init function for the following
-        displayItems();
     }
 
 

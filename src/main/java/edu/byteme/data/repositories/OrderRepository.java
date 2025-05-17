@@ -5,10 +5,16 @@ package edu.byteme.data.repositories;
  */
 
 import edu.byteme.data.entities.Order;
-import org.springframework.data.jpa.repository.JpaRepository;
+import edu.byteme.data.entities.OrderStatus;
 
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+
+import java.time.LocalDateTime;
 import java.util.List;
 
+@Repository
 public interface OrderRepository extends JpaRepository<Order, Integer> {
 
     // get all orders for a specific client
@@ -16,4 +22,10 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
 
     // get all orders assigned to a specific admin
     List<Order> findByAdminId(Integer adminId);
+
+    // find by status of order
+    List<Order> findByStatus(OrderStatus status);
+
+    // find by order date
+    List<Order> findByOrderDate(LocalDateTime orderDate);
 }

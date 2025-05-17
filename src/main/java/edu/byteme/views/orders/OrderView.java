@@ -1,21 +1,28 @@
 package edu.byteme.views.orders;
-import java.lang.reflect.Parameter;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
 
 import com.vaadin.flow.component.button.*;
 import com.vaadin.flow.component.dialog.Dialog;
-import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H2;
+import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Paragraph;
+import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.server.auth.AnonymousAllowed;
 
 import edu.byteme.data.entities.Order;
+import edu.byteme.services.OrderService;
 import edu.byteme.views.MainLayout;
 import edu.byteme.views.menu.MenuListView;
+import edu.byteme.views.side_bar.SideBar;
 import edu.byteme.data.entities.MenuItem;
 
 /**
@@ -30,16 +37,44 @@ import edu.byteme.data.entities.MenuItem;
 
 @PageTitle("Order")
 @Route(value = "order", layout = MainLayout.class)
-public class OrderView extends VerticalLayout {
+@AnonymousAllowed
+public class OrderView extends HorizontalLayout {
     
 
     private Order order;
+    private OrderService orderService;
+    private MenuListView goodiesList;
+
+
+
+    
 
     /*
      * empty constructor
      */
-    public OrderView(){
+    @Autowired
+    public OrderView(OrderService orderService){
+        this.orderService = orderService;
         setSizeFull();
+        addClassName("order-view");
+        drawViews();
+        addSidePannel();
+
+    }
+
+    private void addSidePannel() {
+        // cart side panel
+        Div cartPanel = new Div();
+        cartPanel.addClassName("cart-panel");
+        //cartPanel.setVisible(false);
+        //cartPanel.add(cartContents, cartTotal);
+        SideBar bar = new SideBar(orderService);
+        bar.setOnOrderSelectedListener(e -> {
+            //setOrder(e);
+            goodiesList.setItems(e.getMenuItems());
+        });
+        cartPanel.add(bar);
+        add(cartPanel);
     }
 
     /*
@@ -49,23 +84,22 @@ public class OrderView extends VerticalLayout {
     private void drawViews() {
         
         if(order == null || order.getMenuItems().isEmpty()){ // order is empty
-
-            // if we dont have order set or order has no menu items added( I am thinking it might happen?)
-            // we show the message that the order is empty
-            showEmptyMessage();
-        }else{ // we have orders
-            // we show menu items list
-            List<MenuItem> goodies = order.getMenuItems();
-            MenuListView goodiesList = new MenuListView(goodies);
-            goodiesList.setMenuItemEvent(goodie ->{
-                // we will display menu item details here
-                Dialog dialog = new Dialog();
-                configureDialog(dialog,goodie);
-                add(dialog);
-                dialog.open();
-            });
-
+            // set selected order to index 0
+            this.order = orderService.getOrdersByClientId(5).get(0);
         }
+        // we show menu items list
+        System.out.println("List available");
+        List<MenuItem> goodies = order.getMenuItems();
+        goodiesList = new MenuListView(goodies);
+
+        goodiesList.setMenuItemEvent(goodie ->{
+            // we will display menu item details here
+            Dialog dialog = new Dialog();
+            configureDialog(dialog,goodie);
+            add(dialog);
+            dialog.open();
+        });
+        add(goodiesList);
     }
 
     /*
@@ -76,61 +110,37 @@ public class OrderView extends VerticalLayout {
         // Name of menu item as title for the dialo
         dialog.setHeaderTitle(item.getName());
 
-        // rest of the details as body text
-        StringBuilder bodyTexStringBuilder = new StringBuilder();
-        bodyTexStringBuilder.append("Description :\t")
-            .append(item.getDescription()).append("\n")
-            .append("Price :\t")
-            .append(item.getPrice()).append("\n")
-            .append("Available? :\t").append(item.isAvailable()?"Yes":"No");
-        Paragraph body = new Paragraph(bodyTexStringBuilder.toString());
+        // rest of the details
+        Paragraph desc = new Paragraph("Description : "+item.getDescription());
+        Paragraph price = new Paragraph("Price : "+item.getPrice());
+        Paragraph available = new Paragraph("Still available : "+(item.isAvailable()?"Yes": "No"));
+        Paragraph since = new Paragraph("Since : "+item.getCreatedAt().format(DateTimeFormatter.ofPattern("dd MMMM, yyyy")));
+
+        Paragraph body = new Paragraph(desc,price,available,since);
 
         // create and attach the body text 
         // -> copied as is from https://vaadin.com/docs/latest/components/dialog
+        // mostly ;-D
         VerticalLayout dialogLayout = new VerticalLayout(body);
         dialogLayout.setPadding(false);
         dialogLayout.setSpacing(false);
         dialogLayout.setAlignItems(FlexComponent.Alignment.STRETCH);
         dialogLayout.getStyle().set("width", "18rem").set("max-width", "100%");
 
-        dialog.add(dialogLayout);
+        HorizontalLayout bodyLayout = new HorizontalLayout();
+        bodyLayout.setPadding(false);
+        // I am adding an image on the left
+        Image menuImage = new Image("icons/icon.png", "Menu image");
+        menuImage.addClassName("menu_cover");
+        //menuImage.setHeight(100, Unit.PIXELS);
+        //menuImage.setWidth(100, Unit.PIXELS);
+        bodyLayout.add(menuImage,dialogLayout);
+        dialog.add(bodyLayout);
         
         // button to close the dialog
         Button ok = new Button("OK", e -> dialog.close());
         ok.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         // attach it to dialog's bottom footer
         dialog.getFooter().add(ok);
-    }
-
-    // displays infor if order is not properly set up
-    // if for example order has no menu items
-    // or order is not selected or added
-    private void showEmptyMessage() {
-        VerticalLayout emptyLayout = new VerticalLayout();
-        emptyLayout.setAlignItems(Alignment.CENTER);
-        emptyLayout.setHorizontalComponentAlignment(Alignment.CENTER);
-        H2 title = new H2("Empty order");
-        Paragraph msg = new Paragraph("The selected order has no menu contents");
-        emptyLayout.add(title,msg);
-        add(emptyLayout);
-    }
-
-    public OrderView(Order order){
-        this();
-        setOrder(order);
-    }
-
-
-
-
-    private void invalidate(){
-        removeAll();
-        drawViews();
-    }
-
-
-    public void setOrder(Order order){
-        this.order = order;
-        invalidate();
     }
 }

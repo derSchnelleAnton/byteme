@@ -1,5 +1,16 @@
 package edu.byteme.services;
 
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import edu.byteme.data.entities.Order;
+import edu.byteme.data.repositories.OrderRepository;
+
+import edu.byteme.data.entities.OrderStatus;
+import edu.byteme.data.entities.MenuItem;
 /*
 * stuff for orderin
 * validation of order
@@ -7,5 +18,65 @@ package edu.byteme.services;
 * idk
 * */
 
+
+@Service
 public class OrderService {
+
+    private final OrderRepository orderRepository;
+
+    @Autowired
+    public OrderService(OrderRepository orderRepository) {
+        this.orderRepository = orderRepository;
+    }
+
+    // CRUD and Query Methods
+
+    public List<Order> getAllOrders() {
+        return orderRepository.findAll();
+    }
+
+    public Optional<Order> getOrderById(int id) {
+        return orderRepository.findById(id);
+    }
+
+    public Order getReferenceById(int id) {
+        return orderRepository.getReferenceById(id);
+    }
+
+    public List<Order> getOrdersByClientId(int clientId) {
+        return orderRepository.findByClientId(clientId);
+    }
+
+    public List<Order> getOrdersByAdminId(int adminId) {
+        return orderRepository.findByAdminId(adminId);
+    }
+
+    public Order saveOrder(Order order) {
+        return orderRepository.save(order);
+    }
+
+    public void deleteOrder(int id) {
+        orderRepository.deleteById(id);
+    }
+
+    public boolean existsById(int id) {
+        return orderRepository.existsById(id);
+    }
+
+
+    public double getTotalCostOfOrder(Order order){
+        double price = 0.0;
+        for (MenuItem item: order.getMenuItems()) {
+            price+= item.getPrice();
+        }
+        return price;
+    }
+
+    // Optional: update status
+    public Order updateStatus(int orderId, OrderStatus newStatus) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new IllegalArgumentException("Order not found"));
+        order.setStatus(newStatus);
+        return orderRepository.save(order);
+    }
 }

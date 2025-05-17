@@ -24,9 +24,9 @@ public class Order extends AbstractEntity {
     @JoinColumn(name = "client_id")
     private Client client;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
-            name = "order_menu_items",
+            name = "order_menu",
             joinColumns = @JoinColumn(name = "order_id"),
             inverseJoinColumns = @JoinColumn(name = "menu_item_id")
     )
