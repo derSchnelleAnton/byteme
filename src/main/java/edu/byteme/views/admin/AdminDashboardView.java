@@ -1,10 +1,16 @@
 package edu.byteme.views.admin;
 
 import com.vaadin.flow.component.UI;
-import com.vaadin.flow.component.Unit;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
+import com.vaadin.flow.component.charts.Chart;
+import com.vaadin.flow.component.charts.model.ChartType;
+import com.vaadin.flow.component.charts.model.Configuration;
+import com.vaadin.flow.component.charts.model.DataSeries;
+import com.vaadin.flow.component.charts.model.DataSeriesItem;
+import com.vaadin.flow.component.charts.model.PlotOptionsPie;
+import com.vaadin.flow.component.charts.model.Tooltip;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.dialog.Dialog;
@@ -34,9 +40,9 @@ import edu.byteme.services.OrderService;
 import edu.byteme.views.MainLayout;
 import jakarta.annotation.security.RolesAllowed;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @PageTitle("Admin")
 @Route(value = "admin", layout = MainLayout.class)
@@ -44,59 +50,51 @@ import java.util.stream.Collectors;
 @CssImport("./themes/my-app/menu-view.css")
 public class AdminDashboardView extends VerticalLayout {
 
-    /* ───────────────────────── fields ───────────────────────── */
-
     private final MenuService menuService;
     private final OrderService orderService;
     private final VerticalLayout central = new VerticalLayout();
     private Registration orderSub;
     private Registration reportSub;
 
-    /* ───────────────────────── ctor ───────────────────────── */
-
     public AdminDashboardView(MenuService menuService, OrderService orderService) {
-        this.menuService  = menuService;
+        this.menuService = menuService;
         this.orderService = orderService;
-
         setSizeFull();
         addClassName("menu-view");
-
         buildTabs();
         central.setSizeFull();
         add(central);
         showMenu();
     }
 
-    /* ───────────────────────── tabs ───────────────────────── */
-
     private void buildTabs() {
         Tabs tabs = new Tabs();
-        Tab menuTab   = new Tab("Menu");
+        Tab menuTab = new Tab("Menu");
         Tab ordersTab = new Tab("Orders");
-        Tab reportsTab= new Tab("Reports");
+        Tab reportsTab = new Tab("Reports");
         tabs.add(menuTab, ordersTab, reportsTab);
         tabs.setSelectedTab(menuTab);
         tabs.addSelectedChangeListener(e -> {
             central.removeAll();
-            clearSubscriptions();
-            if (e.getSelectedTab() == menuTab)   showMenu();
+            clearSubs();
+            if (e.getSelectedTab() == menuTab) showMenu();
             if (e.getSelectedTab() == ordersTab) showOrders();
             if (e.getSelectedTab() == reportsTab) showReports();
         });
         add(tabs);
     }
 
-    private void clearSubscriptions() {
-        if (orderSub  != null) { orderSub.remove();  orderSub  = null; }
-        if (reportSub != null) { reportSub.remove(); reportSub = null; }
+    private void clearSubs() {
+        if (orderSub != null) orderSub.remove();
+        if (reportSub != null) reportSub.remove();
     }
 
-    /* ───────────────────────── MENU ───────────────────────── */
+    /* MENU */
 
     private void showMenu() {
         central.removeAll();
         central.add(header("Admin Dashboard — Manage Menu"));
-        renderMenuList();
+        menuService.getAllItems().forEach(mi -> central.add(menuRow(mi)));
         buildAddItemBar();
     }
 
@@ -106,10 +104,6 @@ public class AdminDashboardView extends VerticalLayout {
         return h;
     }
 
-    private void renderMenuList() {
-        menuService.getAllItems().forEach(mi -> central.add(menuRow(mi)));
-    }
-
     private HorizontalLayout menuRow(MenuItem item) {
         HorizontalLayout row = new HorizontalLayout();
         row.addClassName("menu-item");
@@ -117,17 +111,17 @@ public class AdminDashboardView extends VerticalLayout {
         row.setWidthFull();
         row.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
 
-        Image icon = new Image("images/take-away.png", "Menu item image");
-        icon.setWidth(60, Unit.PIXELS);
-        icon.setHeight(60, Unit.PIXELS);
+        Image icon = new Image("images/take-away.png", "menu image");
+        icon.setWidth("60px");
+        icon.setHeight("60px");
         row.add(icon);
 
-        VerticalLayout desc = new VerticalLayout();
-        desc.setSpacing(false);
-        desc.setPadding(false);
-        desc.setMargin(false);
-        desc.add(new H2(item.getName()), new Paragraph(item.getDescription()));
-        row.add(desc);
+        VerticalLayout text = new VerticalLayout();
+        text.setSpacing(false);
+        text.setPadding(false);
+        text.setMargin(false);
+        text.add(new H2(item.getName()), new Paragraph(item.getDescription()));
+        row.add(text);
 
         row.add(new Paragraph(item.getPrice() + "€"));
 
@@ -183,42 +177,37 @@ public class AdminDashboardView extends VerticalLayout {
     }
 
     private void showEditDialog(MenuItem item) {
-        Dialog dialog = new Dialog();
-        dialog.setHeaderTitle("Edit Menu Item");
-        dialog.setWidth("480px");
+        Dialog d = new Dialog();
+        d.setHeaderTitle("Edit Menu Item");
+        d.setWidth("480px");
 
-        TextField name        = new TextField("Name",        item.getName());
-        TextField description = new TextField("Description", item.getDescription());
-        NumberField price     = new NumberField("Price");
-        price.setValue(item.getPrice());
-        NumberField discount  = new NumberField("Discount");
-        discount.setValue(item.getDiscount());
-        Checkbox available    = new Checkbox("Available", item.isAvailable());
+        TextField n = new TextField("Name", item.getName());
+        TextField desc = new TextField("Description", item.getDescription());
+        NumberField p = new NumberField("Price");
+        p.setValue(item.getPrice());
+        NumberField disc = new NumberField("Discount");
+        disc.setValue(item.getDiscount());
+        Checkbox avail = new Checkbox("Available", item.isAvailable());
 
-        Button save = new Button("Save", ev -> {
-            item.setName(name.getValue());
-            item.setDescription(description.getValue());
-            item.setPrice(price.getValue());
-            item.setDiscount(discount.getValue() == null ? 0.0 : discount.getValue());
-            item.setAvailable(available.getValue());
+        Button save = new Button("Save", e -> {
+            item.setName(n.getValue());
+            item.setDescription(desc.getValue());
+            item.setPrice(p.getValue());
+            item.setDiscount(disc.getValue() == null ? 0.0 : disc.getValue());
+            item.setAvailable(avail.getValue());
             menuService.saveItem(item);
-            dialog.close();
+            d.close();
             getUI().ifPresent(ui -> ui.getPage().reload());
         });
         save.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        Button cancel = new Button("Cancel", e -> d.close());
 
-        Button cancel = new Button("Cancel", ev -> dialog.close());
-        cancel.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
-
-        VerticalLayout content = new VerticalLayout(
-                name, description, price, discount, available,
-                new HorizontalLayout(save, cancel)
-        );
-        dialog.add(content);
-        dialog.open();
+        VerticalLayout ct = new VerticalLayout(n, desc, p, disc, avail, new HorizontalLayout(save, cancel));
+        d.add(ct);
+        d.open();
     }
 
-    /* ───────────────────────── ORDERS ───────────────────────── */
+    /* ORDERS */
 
     private void showOrders() {
         central.removeAll();
@@ -226,18 +215,17 @@ public class AdminDashboardView extends VerticalLayout {
 
         Grid<Order> grid = new Grid<>(Order.class, false);
         grid.setDetailsVisibleOnClick(false);
-        grid.addColumn(Order::getId)                             .setHeader("ID").setAutoWidth(true);
-        grid.addColumn(o -> o.getClient().getUserName())         .setHeader("Client");
-        grid.addComponentColumn(o -> statusBox(o, grid))         .setHeader("Status").setAutoWidth(true);
-        grid.addColumn(o -> o.getMenuItems().size())             .setHeader("# Items").setAutoWidth(true);
-        grid.addColumn(o -> orderService.getTotalCostOfOrder(o)) .setHeader("Total (€)").setAutoWidth(true);
+        grid.addColumn(Order::getId).setHeader("ID").setAutoWidth(true);
+        grid.addColumn(o -> o.getClient().getUserName()).setHeader("Client");
+        grid.addComponentColumn(o -> statusBox(o, grid)).setHeader("Status").setAutoWidth(true);
+        grid.addColumn(o -> o.getMenuItems().size()).setHeader("# Items").setAutoWidth(true);
+        grid.addColumn(o -> orderService.getTotalCostOfOrder(o)).setHeader("Total (€)").setAutoWidth(true);
         grid.setItemDetailsRenderer(new ComponentRenderer<>(this::detailsRenderer));
         grid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
         grid.setSizeFull();
 
         central.add(grid);
         central.expand(grid);
-
         refreshOrders(grid);
         subscribeOrders(grid);
     }
@@ -248,8 +236,7 @@ public class AdminDashboardView extends VerticalLayout {
         cb.setValue(o.getStatus());
         cb.setWidthFull();
         cb.addValueChangeListener(ev -> {
-            if (!ev.isFromClient()) return;
-            if (ev.getValue() == null || ev.getValue() == o.getStatus()) return;
+            if (!ev.isFromClient() || ev.getValue() == null || ev.getValue() == o.getStatus()) return;
             Order updated = orderService.updateStatus(o.getId(), ev.getValue());
             o.setStatus(updated.getStatus());
             UI.getCurrent().access(() -> {
@@ -261,27 +248,27 @@ public class AdminDashboardView extends VerticalLayout {
     }
 
     private VerticalLayout detailsRenderer(Order o) {
-        VerticalLayout box = new VerticalLayout();
-        o.getMenuItems().forEach(mi ->
-                box.add(new Paragraph(mi.getName() + " — " + mi.getPrice() + "€")));
-        box.add(new Paragraph("Total: " + orderService.getTotalCostOfOrder(o) + "€"));
-        box.add(new Paragraph("Status: " + o.getStatus()));
-        box.add(new Paragraph("Ordered: " + o.getOrderDate().toLocalDate()));
-        return box;
+        VerticalLayout v = new VerticalLayout();
+        o.getMenuItems().forEach(mi -> v.add(new Paragraph(mi.getName() + " — " + mi.getPrice() + "€")));
+        v.add(new Paragraph("Total: " + orderService.getTotalCostOfOrder(o) + "€"));
+        v.add(new Paragraph("Status: " + o.getStatus()));
+        v.add(new Paragraph("Ordered: " + o.getOrderDate().toLocalDate()));
+        return v;
     }
 
     private void refreshOrders(Grid<Order> g) {
-        List<Order> orders = orderService.getAllOrders();
-        g.setItems(orders);
-        orders.forEach(o -> g.setDetailsVisible(o, true));
+        List<Order> list = orderService.getAllOrders();
+        g.setItems(list);
+        list.forEach(o -> g.setDetailsVisible(o, true));
     }
 
     private void subscribeOrders(Grid<Order> g) {
-        orderSub = OrderBroadcaster.register(o -> UI.getCurrent().access(() -> refreshOrders(g)));
+        orderSub = OrderBroadcaster.register(o ->
+                UI.getCurrent().access(() -> refreshOrders(g)));
         central.addDetachListener(e -> { if (orderSub != null) orderSub.remove(); });
     }
 
-    /* ───────────────────────── REPORTS ───────────────────────── */
+    /* REPORTS */
 
     private void showReports() {
         central.removeAll();
@@ -289,74 +276,91 @@ public class AdminDashboardView extends VerticalLayout {
 
         ComboBox<String> period = new ComboBox<>();
         period.setItems("Daily", "Weekly", "Monthly", "Yearly");
-        period.setValue("Daily");
+        period.setValue("Monthly");
 
-        Paragraph revenueLabel = new Paragraph();
-        revenueLabel.getStyle().set("font-weight", "bold");
+        Paragraph revenueP = new Paragraph();
+        revenueP.getStyle().set("font-weight", "600");
 
-        Grid<BestSellRow> bestGrid = new Grid<>(BestSellRow.class, false);
-        bestGrid.addColumn(BestSellRow::name)   .setHeader("Item");
-        bestGrid.addColumn(BestSellRow::qty)    .setHeader("Sold");
-        bestGrid.addColumn(BestSellRow::income) .setHeader("Revenue (€)");
-        bestGrid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
-        bestGrid.setHeight("300px");
+        Grid<BestRow> grid = new Grid<>(BestRow.class, false);
+        grid.addColumn(BestRow::name).setHeader("Item");
+        grid.addColumn(BestRow::qty).setHeader("Sold");
+        grid.addColumn(BestRow::income).setHeader("Revenue (€)");
+        grid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
+        grid.setAllRowsVisible(true);
+        grid.setWidth("45%");
 
-        VerticalLayout wrapper = new VerticalLayout(period, revenueLabel, bestGrid);
-        wrapper.setSpacing(true);
-        wrapper.setPadding(true);
-        central.add(wrapper);
+        /* create chart once */
+        Chart pie = new Chart(ChartType.PIE);
+        pie.setWidth("45%");
+        pie.setHeight("450px");
+        configurePie(pie);                       // base config
 
-        Runnable refresher = () -> refreshReports(period.getValue(), revenueLabel, bestGrid);
-        period.addValueChangeListener(e -> refresher.run());
-        refresher.run();
+        HorizontalLayout wrap = new HorizontalLayout(grid, pie);
+        wrap.setWidthFull();
+        wrap.setSpacing(true);
+        wrap.setAlignItems(Alignment.START);
 
-        reportSub = OrderBroadcaster.register(o -> UI.getCurrent().access((Command) refresher));
+        VerticalLayout block = new VerticalLayout(period, revenueP, wrap);
+        block.setPadding(true);
+        block.setSpacing(true);
+        block.setSizeFull();
+        central.add(block);
+        central.expand(block);
+
+        Runnable reload = () -> refreshReports(period.getValue(), revenueP, grid, pie);
+        period.addValueChangeListener(e -> reload.run());
+        reload.run();
+
+        reportSub = OrderBroadcaster.register(o -> UI.getCurrent().access((Command) reload));
         central.addDetachListener(e -> { if (reportSub != null) reportSub.remove(); });
     }
 
-    private record BestSellRow(String name, long qty, double income){}
+    private static void configurePie(Chart pie) {
+        Configuration cfg = pie.getConfiguration();
+        cfg.setTitle("Share of sales");
+        PlotOptionsPie opt = new PlotOptionsPie();
+        opt.setShowInLegend(false);
+        opt.setInnerSize("40%");
+        cfg.setPlotOptions(opt);
+        Tooltip tt = new Tooltip();
+        tt.setPointFormat("{point.name}: {point.y}");
+        cfg.setTooltip(tt);
+        cfg.setSeries(new DataSeries());         // placeholder series
+    }
 
-    private void refreshReports(String period,
-                                Paragraph revenueLabel,
-                                Grid<BestSellRow> bestGrid) {
+    private record BestRow(String name, long qty, double income) {}
 
-        List<Order> orders = orderService.getAllOrders();
+    private void refreshReports(String period, Paragraph rev, Grid<BestRow> grid, Chart pie) {
+
+        List<Order> all = orderService.getAllOrders();
         LocalDateTime now = LocalDateTime.now();
 
         List<Order> filtered = switch (period) {
-            case "Daily"   -> orders.stream()
-                    .filter(o -> o.getOrderDate().toLocalDate().equals(now.toLocalDate()))
-                    .toList();
-            case "Weekly"  -> orders.stream()
-                    .filter(o -> o.getOrderDate().isAfter(now.minusDays(7)))
-                    .toList();
-            case "Monthly" -> orders.stream()
-                    .filter(o -> o.getOrderDate().isAfter(now.minusDays(30)))
-                    .toList();
-            case "Yearly"  -> orders.stream()
-                    .filter(o -> o.getOrderDate().isAfter(now.minusDays(365)))
-                    .toList();
-            default        -> orders;
+            case "Daily"  -> all.stream().filter(o -> o.getOrderDate().toLocalDate().equals(LocalDate.now())).toList();
+            case "Weekly" -> all.stream().filter(o -> o.getOrderDate().isAfter(now.minusDays(7))).toList();
+            case "Monthly"-> all.stream().filter(o -> o.getOrderDate().isAfter(now.minusDays(30))).toList();
+            case "Yearly" -> all.stream().filter(o -> o.getOrderDate().isAfter(now.minusDays(365))).toList();
+            default       -> all;
         };
 
-        double revenue = filtered.stream()
-                .mapToDouble(orderService::getTotalCostOfOrder)
-                .sum();
-        revenueLabel.setText("Revenue (" + period + "): " + String.format("%.2f", revenue) + " €");
+        double revenue = filtered.stream().mapToDouble(orderService::getTotalCostOfOrder).sum();
+        rev.setText("Revenue (" + period + "): " + String.format("%.2f", revenue) + " €");
 
         Map<MenuItem, Long> counts = new HashMap<>();
-        filtered.forEach(o -> o.getMenuItems().forEach(mi ->
-                counts.merge(mi, 1L, Long::sum)));
+        filtered.forEach(o -> o.getMenuItems().forEach(mi -> counts.merge(mi, 1L, Long::sum)));
 
-        List<BestSellRow> rows = counts.entrySet().stream()
-                .map(e -> new BestSellRow(
-                        e.getKey().getName(),
-                        e.getValue(),
-                        e.getKey().getPrice() * e.getValue()))
-                .sorted(Comparator.comparingLong(BestSellRow::qty).reversed())
+        List<BestRow> rows = counts.entrySet().stream()
+                .map(e -> new BestRow(e.getKey().getName(), e.getValue(), e.getKey().getPrice() * e.getValue()))
+                .sorted(Comparator.comparingLong(BestRow::qty).reversed())
                 .limit(10)
                 .toList();
 
-        bestGrid.setItems(rows);
+        grid.setItems(rows);
+
+        /* update existing pie instead of replacing */
+        DataSeries ds = new DataSeries();
+        rows.forEach(r -> ds.add(new DataSeriesItem(r.name(), r.qty())));
+        pie.getConfiguration().setSeries(ds);
+        pie.drawChart();
     }
 }
