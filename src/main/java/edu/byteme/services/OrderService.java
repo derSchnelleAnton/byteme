@@ -6,10 +6,12 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+
 import edu.byteme.data.entities.Order;
 import edu.byteme.data.repositories.OrderRepository;
 
 import edu.byteme.data.entities.OrderStatus;
+import edu.byteme.events.OrderBroadcaster;
 import edu.byteme.data.entities.MenuItem;
 /*
 * stuff for orderin
@@ -55,6 +57,12 @@ public class OrderService {
         return orderRepository.save(order);
     }
 
+    public Order saveAndBroadcast(Order order) {
+        Order saved = orderRepository.save(order);
+        OrderBroadcaster.broadcast(saved);
+        return saved;
+    }
+
     public void deleteOrder(int id) {
         orderRepository.deleteById(id);
     }
@@ -73,10 +81,35 @@ public class OrderService {
     }
 
     // Optional: update status
+//    public Order updateStatus(int orderId, OrderStatus newStatus) {
+//        Order order = orderRepository.findById(orderId)
+//                .orElseThrow(() -> new IllegalArgumentException("Order not found"));
+//        order.setStatus(newStatus);
+//        return orderRepository.save(order);
+//    }
     public Order updateStatus(int orderId, OrderStatus newStatus) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new IllegalArgumentException("Order not found"));
         order.setStatus(newStatus);
-        return orderRepository.save(order);
+        Order saved = orderRepository.save(order);
+        OrderBroadcaster.broadcast(saved);
+        return saved;
+    }
+
+    public Order nextStage(int orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new IllegalArgumentException("Order not found"));
+
+        OrderStatus next = switch (order.getStatus()) {
+            case PENDING      -> OrderStatus.CONFIRMED;
+            case CONFIRMED    -> OrderStatus.IN_PROGRESS;
+            case IN_PROGRESS  -> OrderStatus.DELIVERED;
+            default           -> order.getStatus();   // DELIVERED or CANCELLED stay
+        };
+
+        order.setStatus(next);
+        Order saved = orderRepository.save(order);
+        OrderBroadcaster.broadcast(saved);
+        return saved;
     }
 }
