@@ -5,8 +5,8 @@ import com.vaadin.flow.component.DetachEvent;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.Div;
-import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.html.Image;
+import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -22,7 +22,7 @@ import edu.byteme.views.MainLayout;
 import edu.byteme.views.menu.MenuListView;
 import edu.byteme.views.side_bar.SideBar;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
+import java.util.Optional;
 
 @PageTitle("Order")
 @Route(value = "order", layout = MainLayout.class)
@@ -74,9 +74,12 @@ public class OrderView extends HorizontalLayout {
 
         SideBar bar = new SideBar(orderService);
         bar.setOnOrderSelectedListener(selected -> {
-            order = selected;                                                            /* ←──── added */
-            goodiesList.setItems(selected.getMenuItems());
-            timeLine.setValues(selected, orderService.getTotalCostOfOrder(selected) + "€");
+            /* always fetch current state from DB to avoid stale status */
+            Optional<Order> fresh = orderService.getOrderById(selected.getId());
+            order = fresh.orElse(selected);
+
+            goodiesList.setItems(order.getMenuItems());
+            timeLine.setValues(order, orderService.getTotalCostOfOrder(order) + "€");
         });
         side.add(bar);
         add(side);
@@ -106,8 +109,8 @@ public class OrderView extends HorizontalLayout {
         Paragraph desc      = new Paragraph("Description : " + item.getDescription());
         Paragraph price     = new Paragraph("Price : " + item.getPrice());
         Paragraph available = new Paragraph("Still available : " + (item.isAvailable() ? "Yes" : "No"));
-        Paragraph since     = new Paragraph("Since : " +
-                item.getCreatedAt().format(DateTimeFormatter.ofPattern("dd MMMM, yyyy")));
+        Paragraph since     = new Paragraph("Since : "
+                + item.getCreatedAt().format(DateTimeFormatter.ofPattern("dd MMMM, yyyy")));
 
         VerticalLayout dialogLayout = new VerticalLayout(desc, price, available, since);
         dialogLayout.setPadding(false);
