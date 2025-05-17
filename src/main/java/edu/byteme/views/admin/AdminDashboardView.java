@@ -4,13 +4,6 @@ import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
-import com.vaadin.flow.component.charts.Chart;
-import com.vaadin.flow.component.charts.model.ChartType;
-import com.vaadin.flow.component.charts.model.Configuration;
-import com.vaadin.flow.component.charts.model.DataSeries;
-import com.vaadin.flow.component.charts.model.DataSeriesItem;
-import com.vaadin.flow.component.charts.model.PlotOptionsPie;
-import com.vaadin.flow.component.charts.model.Tooltip;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.dialog.Dialog;
@@ -67,6 +60,8 @@ public class AdminDashboardView extends VerticalLayout {
         showMenu();
     }
 
+    /* ───────────────── tabs ───────────────── */
+
     private void buildTabs() {
         Tabs tabs = new Tabs();
         Tab menuTab = new Tab("Menu");
@@ -89,7 +84,7 @@ public class AdminDashboardView extends VerticalLayout {
         if (reportSub != null) reportSub.remove();
     }
 
-    /* MENU */
+    /* ───────────────── MENU ───────────────── */
 
     private void showMenu() {
         central.removeAll();
@@ -207,7 +202,7 @@ public class AdminDashboardView extends VerticalLayout {
         d.open();
     }
 
-    /* ORDERS */
+    /* ───────────────── ORDERS ───────────────── */
 
     private void showOrders() {
         central.removeAll();
@@ -268,7 +263,7 @@ public class AdminDashboardView extends VerticalLayout {
         central.addDetachListener(e -> { if (orderSub != null) orderSub.remove(); });
     }
 
-    /* REPORTS */
+    /* ───────────────── REPORTS ───────────────── */
 
     private void showReports() {
         central.removeAll();
@@ -287,27 +282,16 @@ public class AdminDashboardView extends VerticalLayout {
         grid.addColumn(BestRow::income).setHeader("Revenue (€)");
         grid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
         grid.setAllRowsVisible(true);
-        grid.setWidth("45%");
+        grid.setWidthFull();          // use full width
 
-        /* create chart once */
-        Chart pie = new Chart(ChartType.PIE);
-        pie.setWidth("45%");
-        pie.setHeight("450px");
-        configurePie(pie);                       // base config
-
-        HorizontalLayout wrap = new HorizontalLayout(grid, pie);
-        wrap.setWidthFull();
-        wrap.setSpacing(true);
-        wrap.setAlignItems(Alignment.START);
-
-        VerticalLayout block = new VerticalLayout(period, revenueP, wrap);
+        VerticalLayout block = new VerticalLayout(period, revenueP, grid);
         block.setPadding(true);
         block.setSpacing(true);
         block.setSizeFull();
         central.add(block);
         central.expand(block);
 
-        Runnable reload = () -> refreshReports(period.getValue(), revenueP, grid, pie);
+        Runnable reload = () -> refreshReports(period.getValue(), revenueP, grid);
         period.addValueChangeListener(e -> reload.run());
         reload.run();
 
@@ -315,32 +299,18 @@ public class AdminDashboardView extends VerticalLayout {
         central.addDetachListener(e -> { if (reportSub != null) reportSub.remove(); });
     }
 
-    private static void configurePie(Chart pie) {
-        Configuration cfg = pie.getConfiguration();
-        cfg.setTitle("Share of sales");
-        PlotOptionsPie opt = new PlotOptionsPie();
-        opt.setShowInLegend(false);
-        opt.setInnerSize("40%");
-        cfg.setPlotOptions(opt);
-        Tooltip tt = new Tooltip();
-        tt.setPointFormat("{point.name}: {point.y}");
-        cfg.setTooltip(tt);
-        cfg.setSeries(new DataSeries());         // placeholder series
-    }
-
     private record BestRow(String name, long qty, double income) {}
 
-    private void refreshReports(String period, Paragraph rev, Grid<BestRow> grid, Chart pie) {
-
+    private void refreshReports(String period, Paragraph rev, Grid<BestRow> grid) {
         List<Order> all = orderService.getAllOrders();
         LocalDateTime now = LocalDateTime.now();
 
         List<Order> filtered = switch (period) {
-            case "Daily"  -> all.stream().filter(o -> o.getOrderDate().toLocalDate().equals(LocalDate.now())).toList();
+            case "Daily" -> all.stream().filter(o -> o.getOrderDate().toLocalDate().equals(LocalDate.now())).toList();
             case "Weekly" -> all.stream().filter(o -> o.getOrderDate().isAfter(now.minusDays(7))).toList();
-            case "Monthly"-> all.stream().filter(o -> o.getOrderDate().isAfter(now.minusDays(30))).toList();
+            case "Monthly" -> all.stream().filter(o -> o.getOrderDate().isAfter(now.minusDays(30))).toList();
             case "Yearly" -> all.stream().filter(o -> o.getOrderDate().isAfter(now.minusDays(365))).toList();
-            default       -> all;
+            default -> all;
         };
 
         double revenue = filtered.stream().mapToDouble(orderService::getTotalCostOfOrder).sum();
@@ -356,11 +326,5 @@ public class AdminDashboardView extends VerticalLayout {
                 .toList();
 
         grid.setItems(rows);
-
-        /* update existing pie instead of replacing */
-        DataSeries ds = new DataSeries();
-        rows.forEach(r -> ds.add(new DataSeriesItem(r.name(), r.qty())));
-        pie.getConfiguration().setSeries(ds);
-        pie.drawChart();
     }
 }
