@@ -21,7 +21,6 @@ public class OrderTimeLine extends Div {
     }
 
 
-
     private void draw(){
         ProgressBar progressBar = new ProgressBar();
         progressBar.setMin(0);
@@ -72,7 +71,6 @@ public class OrderTimeLine extends Div {
         this.order = order;
         removeAll();
         draw();
-
     }
     
 }
