@@ -9,6 +9,7 @@ import com.vaadin.flow.router.Route;
 import edu.byteme.data.entities.MenuItem;
 import edu.byteme.data.entities.Order;
 import edu.byteme.data.repositories.MenuRepository;
+import edu.byteme.data.repositories.OrderRepository;
 import edu.byteme.views.MainLayout;
 import jakarta.annotation.security.PermitAll;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,7 +27,7 @@ public class MenuView extends HorizontalLayout {
     private List<Order> orderItems = new ArrayList<>();
 
     @Autowired
-    public MenuView(MenuRepository menuRepository) {
+    public MenuView(MenuRepository menuRepository, OrderRepository orderRepository) {
         setSizeFull();
         addClassName("menu-view");
 
@@ -48,24 +49,19 @@ public class MenuView extends HorizontalLayout {
         topBar.add(cartToggle);
         menuContainer.add(topBar);
 
-        cartPanel.setOnCheckoutClicked(() -> {
-
-            System.out.println("onCheckoutClicked");
-            /*
-            if (userIsLoggedIn()) {
-                // Checkout-Prozess starten
-                navigateToCheckout();
-            } else {
-                // Login-Dialog öffnen
-                loginDialog.open();
-            }*/
-        });
+        orderItems = orderRepository.findAll();
 
         // Hand over orders and shopping items to cart to be displayed
         cartPanel.updateCart(cartItems);
         cartPanel.updateOrders(orderItems);
 
-        // Callback function that removes item from cart items when button is pressed in cart component
+        // Callback function that is called when the order-button is pressed
+        cartPanel.setOnCheckoutClicked(() -> {
+            System.out.println("onCheckoutClicked"); // CALLBACK NEREDS TO BE ADDED
+        });
+
+        // Callback function that is called when the minus-button is pressed in the sidebar
+        // Removes last item with the respective name in the list so that the order stays correct
         cartPanel.setOnRemoveMenuItem(itemToRemove -> {
             for (int i = cartItems.size() - 1; i >= 0; i--) {
                 if (cartItems.get(i).getName().equals(itemToRemove.getName())) {
@@ -76,6 +72,7 @@ public class MenuView extends HorizontalLayout {
             cartPanel.updateCart(cartItems);
         });
 
+        // Callback function that is called when the plus-button is pressed in the sidebar
         cartPanel.setOnAddMenuItem(item -> {
             cartItems.add(item);
             cartPanel.updateCart(cartItems);

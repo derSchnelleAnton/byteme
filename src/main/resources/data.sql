@@ -30,3 +30,11 @@ VALUES
 (9, 'Tiramisu', 'Coffee-soaked sponge, mascarpone cream', 4.50, 0.00, true, NOW(), NOW()),
 (10, 'Garlic Bread', 'Toasted bread, garlic butter', 3.50, 0.00, true, NOW(), NOW());
 
+-- orders
+INSERT INTO orders (id, admin_id, client_id, status , order_date, delivery_date)
+VALUES
+    (1, 1, 5 ,'NEW', NOW(), NOW()),
+    (2, 1, 5 ,'NEW', NOW(), NOW()),
+    (3, 1, 5 ,'NEW', NOW(), NOW()),
+    (4, 1, 5 ,'NEW', NOW(), NOW()),
+    (5, 1, 5 ,'NEW', NOW(), NOW());
