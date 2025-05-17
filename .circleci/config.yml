@@ -70,8 +70,8 @@ jobs:
 workflows:
   build-test-and-deploy:
     jobs:
-      - build
-        context:vaadin-keys
+      - build:
+          context: vaadin-keys
       - test:
           requires:
             - build
