@@ -3,14 +3,11 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-
 import com.vaadin.flow.component.button.*;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.Div;
-import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Paragraph;
-import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -44,10 +41,7 @@ public class OrderView extends HorizontalLayout {
     private Order order;
     private OrderService orderService;
     private MenuListView goodiesList;
-
-
-
-    
+    private OrderTimeLine timeLine;
 
     /*
      * empty constructor
@@ -70,8 +64,9 @@ public class OrderView extends HorizontalLayout {
         //cartPanel.add(cartContents, cartTotal);
         SideBar bar = new SideBar(orderService);
         bar.setOnOrderSelectedListener(e -> {
-            //setOrder(e);
+            // order selected
             goodiesList.setItems(e.getMenuItems());
+            timeLine.setValues(e, orderService.getTotalCostOfOrder(e)+"€");
         });
         cartPanel.add(bar);
         add(cartPanel);
@@ -88,7 +83,6 @@ public class OrderView extends HorizontalLayout {
             this.order = orderService.getOrdersByClientId(5).get(0);
         }
         // we show menu items list
-        System.out.println("List available");
         List<MenuItem> goodies = order.getMenuItems();
         goodiesList = new MenuListView(goodies);
 
@@ -99,7 +93,16 @@ public class OrderView extends HorizontalLayout {
             add(dialog);
             dialog.open();
         });
-        add(goodiesList);
+        VerticalLayout wrapper = new VerticalLayout();
+        wrapper.setHeight("100%");
+        timeLine = new OrderTimeLine(order, orderService.getTotalCostOfOrder(order)+"€");
+        Div footer = new Div(timeLine);
+        footer.setWidthFull();
+        wrapper.add(goodiesList,footer);
+        add(wrapper);
+        
+
+        
     }
 
     /*
@@ -130,7 +133,7 @@ public class OrderView extends HorizontalLayout {
         HorizontalLayout bodyLayout = new HorizontalLayout();
         bodyLayout.setPadding(false);
         // I am adding an image on the left
-        Image menuImage = new Image("icons/icon.png", "Menu image");
+        Image menuImage = new Image("images/take-away.png", "Menu image");
         menuImage.addClassName("menu_cover");
         //menuImage.setHeight(100, Unit.PIXELS);
         //menuImage.setWidth(100, Unit.PIXELS);

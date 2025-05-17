@@ -7,7 +7,8 @@ package edu.byteme.data.entities;
  */
 
 public enum OrderStatus {
-    NEW,
+    PENDING,
+    CONFIRMED,
     IN_PROGRESS,
     DELIVERED,
     CANCELLED

@@ -20,31 +20,32 @@ import java.util.List;
 public class SideBar extends VerticalLayout{
     private List<Order> orders;
     private OnOrderSelectedListener onOrderSelectedListener;
+    private OrderService orderService;
 
 
     public SideBar(OrderService orderService){
+
+        this.orderService = orderService;
         this.orders = orderService.getOrdersByClientId(5);
+
         createNavItems();
     }
 
     private void createNavItems(){
         ListBox<Order> listBox = new ListBox<>();
         listBox.setItems(orders);
+        listBox.setValue(orders.get(0));
         listBox.setRenderer(new ComponentRenderer<>(order -> {
             HorizontalLayout row = new HorizontalLayout();
-            Avatar avatar = new Avatar();
-            avatar.setImage("icons/icon.png");
+            Avatar avatar = new Avatar("Lunch Box");
+            avatar.setImage("images/food.png");
             row.add(avatar);
             String date = order.getOrderDate().format(DateTimeFormatter.ofPattern("dd. MM. yyyy"));
             row.add(new Span(date));
-            row.add(new Span(order.getStatus().toString()));
+            row.add(new Span(orderService.getTotalCostOfOrder(order)+"€"));
             row.setDefaultVerticalComponentAlignment(Alignment.CENTER);
             return row;
         }));
-        /*listBox.setItemLabelGenerator(order -> {
-            String date = order.getOrderDate().format(DateTimeFormatter.ofPattern("dd. MM. yyyy"));
-            return date + " : " + orderService.getTotalCostOfOrder(order) + "€";
-        });*/
 
         listBox.addValueChangeListener(e -> {
             if (e.getValue() != null) {

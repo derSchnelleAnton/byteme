@@ -1,7 +1,5 @@
 package edu.byteme.views.menu;
 
-import com.vaadin.flow.component.Component;
-import com.vaadin.flow.component.ComponentEvent;
 import com.vaadin.flow.component.Unit;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -83,7 +81,7 @@ public class MenuListView  extends VerticalLayout{
         /*
         *  |-----------==============================-----------------------------|
         *  | /``````\  | Name                       |                             |
-        *  || IMAGE  | |                            |    price    (button text )  |
+        *  || IMAGE  | |                            |        price    ( button )  |
         *  | \______/  | description                |                             |
         *  |-----------==============================-----------------------------|
          */
