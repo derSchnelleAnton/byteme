@@ -19,6 +19,7 @@ VALUES
 -- menu items
 INSERT INTO menu_item (name, description, price, discount, is_available, created_at, updated_at)
 VALUES
+
 ('Margherita Pizza', 'Tomato sauce, mozzarella, basil', 8.50, 0.00, true, NOW(), NOW()),
 ('Pepperoni Pizza', 'Spicy salami, tomato sauce, cheese', 9.50, 0.00, true, NOW(), NOW()),
 ('Veggie Pizza', 'Grilled vegetables, pesto, cheese', 9.00, 0.00, true, NOW(), NOW()),
@@ -29,3 +30,30 @@ VALUES
 ('Caesar Salad', 'Lettuce, chicken, croutons, dressing', 7.00, 0.00, true, NOW(), NOW()),
 ('Tiramisu', 'Coffee-soaked sponge, mascarpone cream', 4.50, 0.00, true, NOW(), NOW()),
 ('Garlic Bread', 'Toasted bread, garlic butter', 3.50, 0.00, true, NOW(), NOW());
+
+
+
+-- orders
+INSERT INTO orders (id, admin_id, client_id, status , order_date, delivery_date)
+VALUES
+(1, 1, 5 ,'CANCELLED', NOW(), NOW()),
+(2, 1, 5 ,'PENDING', NOW(), NOW()),
+(3, 1, 5 ,'CONFIRMED', NOW(), NOW()),
+(4, 1, 5 ,'IN_PROGRESS', NOW(), NOW()),
+(5, 1, 5 ,'DELIVERED', NOW(), NOW());
+
+
+-- Order-Menu junction table inserts
+INSERT INTO order_menu (order_id, menu_item_id) VALUES
+(1, 1),
+(1, 2),
+(2, 3),
+(2, 4),
+(3, 5),
+(3, 6),
+(3, 7),
+(4, 1),
+(4, 8),
+(4, 9),
+(5, 10);
+
