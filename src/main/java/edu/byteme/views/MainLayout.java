@@ -27,6 +27,7 @@ import com.vaadin.flow.theme.lumo.LumoUtility.Padding;
 import com.vaadin.flow.theme.lumo.LumoUtility.TextColor;
 import com.vaadin.flow.theme.lumo.LumoUtility.Whitespace;
 import com.vaadin.flow.theme.lumo.LumoUtility.Width;
+import edu.byteme.views.admin.AdminDashboardView;
 import edu.byteme.views.menu.MenuView;
 import org.vaadin.lineawesome.LineAwesomeIcon;
 
@@ -95,7 +96,8 @@ public class MainLayout extends AppLayout {
 
     private MenuItemInfo[] createMenuItems() {
         return new MenuItemInfo[]{
-                new MenuItemInfo("Menu", LineAwesomeIcon.UTENSILS_SOLID.create(), MenuView.class)
+                new MenuItemInfo("Menu", LineAwesomeIcon.UTENSILS_SOLID.create(), MenuView.class),
+                new MenuItemInfo("Admin", LineAwesomeIcon.TACHOMETER_ALT_SOLID.create(), AdminDashboardView.class)
         };
     }
 }
