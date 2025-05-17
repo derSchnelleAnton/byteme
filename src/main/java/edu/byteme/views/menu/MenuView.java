@@ -3,12 +3,11 @@ package edu.byteme.views.menu;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.html.Div;
-import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
-import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import edu.byteme.data.entities.MenuItem;
+import edu.byteme.data.entities.Order;
 import edu.byteme.data.repositories.MenuRepository;
 import edu.byteme.views.MainLayout;
 import jakarta.annotation.security.PermitAll;
@@ -20,24 +19,22 @@ import java.util.List;
 @PageTitle("Menu")
 @Route(value = "", layout = MainLayout.class)
 @PermitAll
-@CssImport("./themes/my-app/menu-view.css")
+
 public class MenuView extends HorizontalLayout {
-    private Div cartPanel = null;
-    private final Div menuContainer;
-    private final List<MenuItem> cartItems = new ArrayList<>();
-    private final VerticalLayout cartContents = new VerticalLayout();
-    private final Paragraph cartTotal = new Paragraph();
+    private CartComponent cartPanel = new CartComponent();
+    private List<MenuItem> cartItems = new ArrayList<>();
+    private List<Order> orderItems = new ArrayList<>();
 
     @Autowired
     public MenuView(MenuRepository menuRepository) {
         setSizeFull();
         addClassName("menu-view");
 
-        // main menu section
-        menuContainer = new Div();
+        // Menu container wraps everything
+        Div menuContainer = new Div();
         menuContainer.addClassName("menu-container");
 
-        // top bar with cart button aligned right
+        // Top bar with cart button aligned right
         HorizontalLayout topBar = new HorizontalLayout();
         topBar.setWidthFull();
         topBar.setJustifyContentMode(JustifyContentMode.END);
@@ -51,47 +48,52 @@ public class MenuView extends HorizontalLayout {
         topBar.add(cartToggle);
         menuContainer.add(topBar);
 
-        // content inside menu
-        //Div menuList = new Div();
-        //menuList.addClassName("menu-list");
-        //menuContainer.add(menuList);
+        cartPanel.setOnCheckoutClicked(() -> {
 
-        // cart side panel
-        cartPanel = new Div();
-        cartPanel.addClassName("cart-panel");
-        cartPanel.setVisible(false);
-        cartPanel.add(cartContents, cartTotal);
+            System.out.println("onCheckoutClicked");
+            /*
+            if (userIsLoggedIn()) {
+                // Checkout-Prozess starten
+                navigateToCheckout();
+            } else {
+                // Login-Dialog öffnen
+                loginDialog.open();
+            }*/
+        });
 
-        add(menuContainer, cartPanel);
-        expand(menuContainer);
+        // Hand over orders and shopping items to cart to be displayed
+        cartPanel.updateCart(cartItems);
+        cartPanel.updateOrders(orderItems);
 
-        // load items
-        /* menuRepository.findByIsAvailableTrue().forEach(item -> {
-            //menuList.add(createMenuCard(item));
-        });*/
-        List<MenuItem> items = menuRepository.findByIsAvailableTrue();
-        MenuListView orderView = new MenuListView(items);
+        // Callback function that removes item from cart items when button is pressed in cart component
+        cartPanel.setOnRemoveMenuItem(itemToRemove -> {
+            for (int i = cartItems.size() - 1; i >= 0; i--) {
+                if (cartItems.get(i).getName().equals(itemToRemove.getName())) {
+                    cartItems.remove(i);
+                    break;
+                }
+            }
+            cartPanel.updateCart(cartItems);
+        });
+
+        cartPanel.setOnAddMenuItem(item -> {
+            cartItems.add(item);
+            cartPanel.updateCart(cartItems);
+        });
+
+        // Loads items onto the menu
+        List<MenuItem> menuItems = menuRepository.findByIsAvailableTrue();
+        MenuListView orderView = new MenuListView(menuItems);
         menuContainer.add(orderView);
         orderView.setActionText("Add to cart");
         orderView.setMenuItemEvent(item -> {
             if (item!= null) {
                 cartItems.add(item);
-                updateCart();
+                cartPanel.updateCart(cartItems);
             }
-            //updateCart();
         });
-    }
 
-    private void updateCart() {
-        cartContents.removeAll();
-        double total = 0;
-
-        for (MenuItem item : cartItems) {
-            Paragraph line = new Paragraph(item.getName() + " — €" + item.getPrice());
-            cartContents.add(line);
-            total += item.getPrice();
-        }
-
-        cartTotal.setText("Total: €" + String.format("%.2f", total));
+        add(menuContainer, cartPanel);
+        expand(menuContainer);
     }
 }
