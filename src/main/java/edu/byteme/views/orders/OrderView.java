@@ -1,9 +1,15 @@
+/* ──────────────────────────────────────────────────────────────
+   File: src/main/java/edu/byteme/views/orders/OrderView.java
+   ────────────────────────────────────────────────────────────── */
 package edu.byteme.views.orders;
+
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import com.vaadin.flow.component.button.*;
+import com.vaadin.flow.component.AttachEvent;
+import com.vaadin.flow.component.DetachEvent;
+import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Image;
@@ -14,117 +20,108 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
+import com.vaadin.flow.shared.Registration;
 
+import edu.byteme.data.entities.MenuItem;
 import edu.byteme.data.entities.Order;
+import edu.byteme.events.OrderBroadcaster;
 import edu.byteme.services.OrderService;
 import edu.byteme.views.MainLayout;
 import edu.byteme.views.menu.MenuListView;
 import edu.byteme.views.side_bar.SideBar;
-import edu.byteme.data.entities.MenuItem;
-
-/**
- * Class OrderView displays details about a single Order
- * @author  Patricia
- * @author Mark Böhme
- * @author Adrian tiberiu petre
- * @author anton Wörndle
- * @author Tinsae Ghilay
- */
-
 
 @PageTitle("Order")
 @Route(value = "order", layout = MainLayout.class)
 @AnonymousAllowed
 public class OrderView extends HorizontalLayout {
-    
 
+    private Registration orderRegistration;
+
+    private final OrderService orderService;
     private Order order;
-    private OrderService orderService;
     private MenuListView goodiesList;
     private OrderTimeLine timeLine;
 
-    /*
-     * empty constructor
-     */
-    @Autowired
-    public OrderView(OrderService orderService){
+    public OrderView(OrderService orderService) {
         this.orderService = orderService;
         setSizeFull();
         addClassName("order-view");
         drawViews();
-        addSidePannel();
-
+        addSidePanel();
     }
 
-    private void addSidePannel() {
-        // cart side panel
+    /* ─── live sync ── */
+
+    @Override
+    protected void onAttach(AttachEvent event) {
+        super.onAttach(event);
+        orderRegistration = OrderBroadcaster.register(this::handleBroadcast);
+    }
+
+    @Override
+    protected void onDetach(DetachEvent event) {
+        if (orderRegistration != null) orderRegistration.remove();
+        super.onDetach(event);
+    }
+
+    private void handleBroadcast(Order updated) {
+        if (!updated.getId().equals(order.getId())) return;
+        UI ui = getUI().orElse(null);
+        if (ui == null) return;
+        ui.access(() -> {
+            order = updated;
+            goodiesList.setItems(order.getMenuItems());
+            timeLine.setValues(order, orderService.getTotalCostOfOrder(order) + "€");
+        });
+    }
+
+    /* ─── layout helpers ── */
+
+    private void addSidePanel() {
         Div cartPanel = new Div();
         cartPanel.addClassName("cart-panel");
-        //cartPanel.setVisible(false);
-        //cartPanel.add(cartContents, cartTotal);
+
         SideBar bar = new SideBar(orderService);
         bar.setOnOrderSelectedListener(e -> {
-            // order selected
             goodiesList.setItems(e.getMenuItems());
-            timeLine.setValues(e, orderService.getTotalCostOfOrder(e)+"€");
+            timeLine.setValues(e, orderService.getTotalCostOfOrder(e) + "€");
         });
         cartPanel.add(bar);
         add(cartPanel);
     }
 
-    /*
-     * Draws the required Views conditionally 
-     * depending on availability of MenuItems in an order
-     */
     private void drawViews() {
-        
-        if(order == null || order.getMenuItems().isEmpty()){ // order is empty
-            // set selected order to index 0
-            this.order = orderService.getOrdersByClientId(5).get(0);
+        if (order == null || order.getMenuItems().isEmpty()) {
+            order = orderService.getOrdersByClientId(5).get(0);
         }
-        // we show menu items list
         List<MenuItem> goodies = order.getMenuItems();
         goodiesList = new MenuListView(goodies);
 
-        goodiesList.setMenuItemEvent(goodie ->{
-            // we will display menu item details here
+        goodiesList.setMenuItemEvent(goodie -> {
             Dialog dialog = new Dialog();
-            configureDialog(dialog,goodie);
+            configureDialog(dialog, goodie);
             add(dialog);
             dialog.open();
         });
+
         VerticalLayout wrapper = new VerticalLayout();
         wrapper.setHeight("100%");
-        timeLine = new OrderTimeLine(order, orderService.getTotalCostOfOrder(order)+"€");
+
+        timeLine = new OrderTimeLine(order, orderService.getTotalCostOfOrder(order) + "€");
         Div footer = new Div(timeLine);
         footer.setWidthFull();
-        wrapper.add(goodiesList,footer);
-        add(wrapper);
-        
 
-        
+        wrapper.add(goodiesList, footer);
+        add(wrapper);
     }
 
-    /*
-     * Configures a dialog to show MenuItem details
-     */
-    private void configureDialog(Dialog dialog,MenuItem item) {
-
-        // Name of menu item as title for the dialo
+    private void configureDialog(Dialog dialog, MenuItem item) {
         dialog.setHeaderTitle(item.getName());
-
-        // rest of the details
-        Paragraph desc = new Paragraph("Description : "+item.getDescription());
-        Paragraph price = new Paragraph("Price : "+item.getPrice());
-        Paragraph available = new Paragraph("Still available : "+(item.isAvailable()?"Yes": "No"));
-        Paragraph since = new Paragraph("Since : "+item.getCreatedAt().format(DateTimeFormatter.ofPattern("dd MMMM, yyyy")));
-
-        Paragraph body = new Paragraph(desc,price,available,since);
-
-        // create and attach the body text 
-        // -> copied as is from https://vaadin.com/docs/latest/components/dialog
-        // mostly ;-D
-        VerticalLayout dialogLayout = new VerticalLayout(body);
+        Paragraph desc      = new Paragraph("Description : " + item.getDescription());
+        Paragraph price     = new Paragraph("Price : " + item.getPrice());
+        Paragraph available = new Paragraph("Still available : " + (item.isAvailable() ? "Yes" : "No"));
+        Paragraph since     = new Paragraph("Since : " + item.getCreatedAt().format(DateTimeFormatter.ofPattern("dd MMMM, yyyy")));
+        VerticalLayout dialogLayout = new VerticalLayout(desc, price, available, since);
         dialogLayout.setPadding(false);
         dialogLayout.setSpacing(false);
         dialogLayout.setAlignItems(FlexComponent.Alignment.STRETCH);
@@ -132,18 +129,11 @@ public class OrderView extends HorizontalLayout {
 
         HorizontalLayout bodyLayout = new HorizontalLayout();
         bodyLayout.setPadding(false);
-        // I am adding an image on the left
         Image menuImage = new Image("images/take-away.png", "Menu image");
-        menuImage.addClassName("menu_cover");
-        //menuImage.setHeight(100, Unit.PIXELS);
-        //menuImage.setWidth(100, Unit.PIXELS);
-        bodyLayout.add(menuImage,dialogLayout);
+        bodyLayout.add(menuImage, dialogLayout);
         dialog.add(bodyLayout);
-        
-        // button to close the dialog
-        Button ok = new Button("OK", e -> dialog.close());
-        ok.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        // attach it to dialog's bottom footer
-        dialog.getFooter().add(ok);
+
+        Button close = new Button("Close", ev -> dialog.close());
+        dialog.getFooter().add(close);
     }
 }

@@ -1,3 +1,6 @@
+/* ──────────────────────────────────────────────────────────────
+   File: src/main/java/edu/byteme/services/OrderService.java
+   ────────────────────────────────────────────────────────────── */
 package edu.byteme.services;
 
 import java.util.List;
@@ -5,21 +8,13 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-
-import edu.byteme.data.entities.Order;
-import edu.byteme.data.repositories.OrderRepository;
-
-import edu.byteme.data.entities.OrderStatus;
-import edu.byteme.events.OrderBroadcaster;
 import edu.byteme.data.entities.MenuItem;
-/*
-* stuff for orderin
-* validation of order
-* status of order
-* idk
-* */
-
+import edu.byteme.data.entities.Order;
+import edu.byteme.data.entities.OrderStatus;
+import edu.byteme.data.repositories.OrderRepository;
+import edu.byteme.events.OrderBroadcaster;
 
 @Service
 public class OrderService {
@@ -31,7 +26,7 @@ public class OrderService {
         this.orderRepository = orderRepository;
     }
 
-    // CRUD and Query Methods
+    /* ───────────── basic queries ───────────── */
 
     public List<Order> getAllOrders() {
         return orderRepository.findAll();
@@ -53,6 +48,8 @@ public class OrderService {
         return orderRepository.findByAdminId(adminId);
     }
 
+    /* ───────────── persistence helpers ───────────── */
+
     public Order saveOrder(Order order) {
         return orderRepository.save(order);
     }
@@ -71,22 +68,19 @@ public class OrderService {
         return orderRepository.existsById(id);
     }
 
+    /* ───────────── calculations ───────────── */
 
-    public double getTotalCostOfOrder(Order order){
+    public double getTotalCostOfOrder(Order order) {
         double price = 0.0;
-        for (MenuItem item: order.getMenuItems()) {
-            price+= item.getPrice();
+        for (MenuItem item : order.getMenuItems()) {
+            price += item.getPrice();
         }
         return price;
     }
 
-    // Optional: update status
-//    public Order updateStatus(int orderId, OrderStatus newStatus) {
-//        Order order = orderRepository.findById(orderId)
-//                .orElseThrow(() -> new IllegalArgumentException("Order not found"));
-//        order.setStatus(newStatus);
-//        return orderRepository.save(order);
-//    }
+    /* ───────────── status mutations ───────────── */
+
+    @Transactional
     public Order updateStatus(int orderId, OrderStatus newStatus) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new IllegalArgumentException("Order not found"));
@@ -96,6 +90,7 @@ public class OrderService {
         return saved;
     }
 
+    @Transactional
     public Order nextStage(int orderId) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new IllegalArgumentException("Order not found"));
@@ -113,6 +108,6 @@ public class OrderService {
         return saved;
     }
 
-    public void setStatus(Integer id, OrderStatus value) {
-    }
+    /* dummy to satisfy legacy calls */
+    public void setStatus(Integer id, OrderStatus value) {}
 }
