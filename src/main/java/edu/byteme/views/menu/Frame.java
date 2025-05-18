@@ -77,19 +77,16 @@ public class Frame extends VerticalLayout {
                     Optional<Client> optionalClient = clientRepository.findByUserName(user.getUsername());
                     optionalClient.ifPresentOrElse(
                             client -> {
-
-                                // BIG ISSUES HERE, PRIMARY KEY VIOLATION
                                 Order tempOrder = new Order();
                                 tempOrder.setClient(client);
                                 tempOrder.setOrderDate(LocalDateTime.now());
                                 tempOrder.setMenuItems(cartItems);
                                 tempOrder.setStatus(OrderStatus.PENDING);
-                                tempOrder.setAdmin(new Admin());
-
+                                // SET ADMIN HERE?
 
                                 orderService.saveOrder(tempOrder);
                             },
-                            () -> System.out.println("Client nicht gefunden!")
+                            () -> System.out.println("Client not found")
                     );
                 });
             } else {
