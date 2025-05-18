@@ -12,7 +12,7 @@ jobs:
       - checkout
       - run:
           name: "Build with Maven"
-          command: mvn $MAVEN_CLI_OPTS clean package -Pproduction -e
+          command: mvn $MAVEN_CLI_OPTS -Dvaadin.offline.key=$OFFLINE_KEY_BYTEME clean package -Pproduction -e
       - store_artifacts:
           path: target
           destination: target
@@ -71,6 +71,7 @@ workflows:
   build-test-and-deploy:
     jobs:
       - build
+        context : vaadin-keys
       - test:
           requires:
             - build

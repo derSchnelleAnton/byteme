@@ -1,14 +1,17 @@
 package edu.byteme.views.admin;
 
-import com.vaadin.flow.component.Unit;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
+import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.dialog.Dialog;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.GridVariant;
+import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Paragraph;
-import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -16,17 +19,24 @@ import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.component.tabs.Tabs;
 import com.vaadin.flow.component.textfield.NumberField;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.server.Command;
+import com.vaadin.flow.shared.Registration;
 import edu.byteme.data.entities.MenuItem;
+import edu.byteme.data.entities.Order;
+import edu.byteme.data.entities.OrderStatus;
+import edu.byteme.events.OrderBroadcaster;
 import edu.byteme.services.MenuService;
+import edu.byteme.services.OrderService;
 import edu.byteme.views.MainLayout;
 import jakarta.annotation.security.RolesAllowed;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 
-import java.util.List;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.*;
 
 @PageTitle("Admin")
 @Route(value = "admin", layout = MainLayout.class)
@@ -35,20 +45,23 @@ import java.util.List;
 public class AdminDashboardView extends VerticalLayout {
 
     private final MenuService menuService;
-    @PersistenceContext
-    private EntityManager entityManager;
-    private static boolean sequenceRestarted = false;
+    private final OrderService orderService;
+    private final VerticalLayout central = new VerticalLayout();
+    private Registration orderSub;
+    private Registration reportSub;
 
-    @Autowired
-    public AdminDashboardView(MenuService menuService) {
+    public AdminDashboardView(MenuService menuService, OrderService orderService) {
         this.menuService = menuService;
+        this.orderService = orderService;
         setSizeFull();
         addClassName("menu-view");
         buildTabs();
-        buildHeader();
-        renderMenuList();
-        buildAddItemBar();
+        central.setSizeFull();
+        add(central);
+        showMenu();
     }
+
+    /* ───────────────── tabs ───────────────── */
 
     private void buildTabs() {
         Tabs tabs = new Tabs();
@@ -58,142 +71,261 @@ public class AdminDashboardView extends VerticalLayout {
         tabs.add(menuTab, ordersTab, reportsTab);
         tabs.setSelectedTab(menuTab);
         tabs.addSelectedChangeListener(e -> {
-            if (e.getSelectedTab() == ordersTab) {
-                getUI().ifPresent(ui -> ui.navigate("admin/orders"));
-            } else if (e.getSelectedTab() == reportsTab) {
-                getUI().ifPresent(ui -> ui.navigate("admin/reports"));
-            }
+            central.removeAll();
+            clearSubs();
+            if (e.getSelectedTab() == menuTab) showMenu();
+            if (e.getSelectedTab() == ordersTab) showOrders();
+            if (e.getSelectedTab() == reportsTab) showReports();
         });
-        HorizontalLayout wrapper = new HorizontalLayout(tabs);
-        wrapper.getStyle().set("margin", "1rem");
-        add(wrapper);
+        add(tabs);
     }
 
-    private void buildHeader() {
-        H2 title = new H2("Admin Dashboard — Manage Menu");
-        title.getStyle().set("margin", "0 1rem");
-        add(title);
+    private void clearSubs() {
+        if (orderSub != null) orderSub.remove();
+        if (reportSub != null) reportSub.remove();
     }
 
-    private void renderMenuList() {
-        List<MenuItem> items = menuService.getAllItems();
-        for (MenuItem item : items) {
-            HorizontalLayout itemLayout = new HorizontalLayout();
-            itemLayout.addClassName("menu-item");
-            itemLayout.setSpacing(true);
-            itemLayout.setWidthFull();
-            itemLayout.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
+    /* ───────────────── MENU ───────────────── */
 
-            Image icon = new Image("icons/icon.png", "Menu item image");
-            icon.setWidth(60, Unit.PIXELS);
-            icon.setHeight(60, Unit.PIXELS);
-            itemLayout.add(icon);
+    private void showMenu() {
+        central.removeAll();
+        central.add(header("Admin Dashboard — Manage Menu"));
+        menuService.getAllItems().forEach(mi -> central.add(menuRow(mi)));
+        buildAddItemBar();
+    }
 
-            VerticalLayout textLayout = new VerticalLayout();
-            textLayout.setSpacing(false);
-            textLayout.setPadding(false);
-            textLayout.setMargin(false);
-            H2 name = new H2(item.getName());
-            Paragraph desc = new Paragraph(item.getDescription());
-            textLayout.add(name, desc);
-            itemLayout.add(textLayout);
+    private H2 header(String txt) {
+        H2 h = new H2(txt);
+        h.getStyle().set("margin", "0 1rem");
+        return h;
+    }
 
-            Paragraph price = new Paragraph(item.getPrice() + "$");
-            itemLayout.add(price);
+    private HorizontalLayout menuRow(MenuItem item) {
+        HorizontalLayout row = new HorizontalLayout();
+        row.addClassName("menu-item");
+        row.setSpacing(true);
+        row.setWidthFull();
+        row.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
 
-            Button edit = new Button("Edit");
-            edit.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-            edit.addClickListener(e -> showEditDialog(item));
-            Button delete = new Button("Delete");
-            delete.addThemeVariants(ButtonVariant.LUMO_ERROR);
-            delete.addClickListener(e -> {
-                menuService.deleteItem(item.getId());
-                getUI().ifPresent(ui -> ui.getPage().reload());
-            });
-            itemLayout.add(edit, delete);
+        Image icon = new Image("images/take-away.png", "menu image");
+        icon.setWidth("60px");
+        icon.setHeight("60px");
+        row.add(icon);
 
-            add(itemLayout);
-        }
+        VerticalLayout text = new VerticalLayout();
+        text.setSpacing(false);
+        text.setPadding(false);
+        text.setMargin(false);
+        text.add(new H2(item.getName()), new Paragraph(item.getDescription()));
+        row.add(text);
+
+        row.add(new Paragraph(item.getPrice() + "€"));
+
+        Button edit = new Button("Edit", e -> showEditDialog(item));
+        edit.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+
+        Button del = new Button("Delete", e -> {
+            menuService.deleteItem(item.getId());
+            getUI().ifPresent(ui -> ui.getPage().reload());
+        });
+        del.addThemeVariants(ButtonVariant.LUMO_ERROR);
+
+        row.add(edit, del);
+        return row;
     }
 
     private void buildAddItemBar() {
         TextField name = new TextField();
         name.setPlaceholder("Name");
+        name.setWidth("12rem");
+
         TextField description = new TextField();
         description.setPlaceholder("Description");
+        description.setWidth("20rem");
+
         NumberField price = new NumberField();
         price.setPlaceholder("Price");
+        price.setWidth("8rem");
+
         NumberField discount = new NumberField();
         discount.setPlaceholder("Discount");
-        Button add = new Button("➕", e -> {
+        discount.setWidth("8rem");
+
+        Button add = new Button("Add");
+        add.addThemeVariants(ButtonVariant.LUMO_SUCCESS);
+        add.addClickListener(e -> {
             if (name.isEmpty() || description.isEmpty() || price.isEmpty()) return;
-
-            MenuItem item = new MenuItem();
-            item.setName(name.getValue());
-            item.setDescription(description.getValue());
-            item.setPrice(price.getValue());
-            item.setDiscount(discount.getValue() != null ? discount.getValue() : 0.0);
-            item.setAvailable(true);
-
-            menuService.saveItem(item);
+            MenuItem mi = new MenuItem();
+            mi.setName(name.getValue());
+            mi.setDescription(description.getValue());
+            mi.setPrice(price.getValue());
+            mi.setDiscount(discount.isEmpty() ? 0.0 : discount.getValue());
+            mi.setAvailable(true);
+            menuService.saveItem(mi);
             getUI().ifPresent(ui -> ui.getPage().reload());
         });
 
         HorizontalLayout bar = new HorizontalLayout(name, description, price, discount, add);
-        bar.setWidthFull();
         bar.setAlignItems(FlexComponent.Alignment.BASELINE);
-        bar.getStyle().set("margin", "1rem");
-        add(bar);
+        bar.setSpacing(true);
+        bar.setPadding(true);
+        central.add(bar);
     }
 
     private void showEditDialog(MenuItem item) {
-        Dialog dialog = new Dialog();
-        dialog.setHeaderTitle("Edit Menu Item");
-        dialog.setWidth("600px");
-        dialog.getElement().getStyle().set("overflow", "hidden"); // prevent scroll bar
+        Dialog d = new Dialog();
+        d.setHeaderTitle("Edit Menu Item");
+        d.setWidth("480px");
 
-        TextField name = new TextField("Name", item.getName());
-        name.setWidthFull();
+        TextField n = new TextField("Name", item.getName());
+        TextField desc = new TextField("Description", item.getDescription());
+        NumberField p = new NumberField("Price");
+        p.setValue(item.getPrice());
+        NumberField disc = new NumberField("Discount");
+        disc.setValue(item.getDiscount());
+        Checkbox avail = new Checkbox("Available", item.isAvailable());
 
-        TextField description = new TextField("Description", item.getDescription());
-        description.setWidthFull();
-
-        NumberField price = new NumberField("Price");
-        price.setValue(item.getPrice());
-        price.setWidthFull();
-
-        NumberField discount = new NumberField("Discount");
-        discount.setValue(item.getDiscount());
-        discount.setWidthFull();
-
-        Checkbox available = new Checkbox("Available", item.isAvailable());
-
-        Button save = new Button("Save", ev -> {
-            item.setName(name.getValue());
-            item.setDescription(description.getValue());
-            item.setPrice(price.getValue());
-            item.setDiscount(discount.getValue());
-            item.setAvailable(available.getValue());
+        Button save = new Button("Save", e -> {
+            item.setName(n.getValue());
+            item.setDescription(desc.getValue());
+            item.setPrice(p.getValue());
+            item.setDiscount(disc.getValue() == null ? 0.0 : disc.getValue());
+            item.setAvailable(avail.getValue());
             menuService.saveItem(item);
-            dialog.close();
+            d.close();
             getUI().ifPresent(ui -> ui.getPage().reload());
         });
+        save.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        Button cancel = new Button("Cancel", e -> d.close());
 
-        Button cancel = new Button("Cancel", ev -> dialog.close());
-
-        HorizontalLayout buttons = new HorizontalLayout(save, cancel);
-        buttons.setSpacing(true);
-        buttons.setPadding(true);
-
-        VerticalLayout content = new VerticalLayout(
-                name, description, price, discount, available, buttons
-        );
-        content.setWidthFull();
-        content.getStyle().set("padding", "1rem");
-        content.getStyle().set("overflow", "hidden");
-
-        dialog.add(content);
-        dialog.open();
+        VerticalLayout ct = new VerticalLayout(n, desc, p, disc, avail, new HorizontalLayout(save, cancel));
+        d.add(ct);
+        d.open();
     }
 
+    /* ───────────────── ORDERS ───────────────── */
+
+    private void showOrders() {
+        central.removeAll();
+        central.add(header("Incoming Orders"));
+
+        Grid<Order> grid = new Grid<>(Order.class, false);
+        grid.setDetailsVisibleOnClick(false);
+        grid.addColumn(Order::getId).setHeader("ID").setAutoWidth(true);
+        grid.addColumn(o -> o.getClient().getUserName()).setHeader("Client");
+        grid.addComponentColumn(o -> statusBox(o, grid)).setHeader("Status").setAutoWidth(true);
+        grid.addColumn(o -> o.getMenuItems().size()).setHeader("# Items").setAutoWidth(true);
+        grid.addColumn(o -> orderService.getTotalCostOfOrder(o)).setHeader("Total (€)").setAutoWidth(true);
+        grid.setItemDetailsRenderer(new ComponentRenderer<>(this::detailsRenderer));
+        grid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
+        grid.setSizeFull();
+
+        central.add(grid);
+        central.expand(grid);
+        refreshOrders(grid);
+        subscribeOrders(grid);
+    }
+
+    private ComboBox<OrderStatus> statusBox(Order o, Grid<Order> grid) {
+        ComboBox<OrderStatus> cb = new ComboBox<>();
+        cb.setItems(OrderStatus.values());
+        cb.setValue(o.getStatus());
+        cb.setWidthFull();
+        cb.addValueChangeListener(ev -> {
+            if (!ev.isFromClient() || ev.getValue() == null || ev.getValue() == o.getStatus()) return;
+            Order updated = orderService.updateStatus(o.getId(), ev.getValue());
+            o.setStatus(updated.getStatus());
+            UI.getCurrent().access(() -> {
+                grid.getDataProvider().refreshItem(o);
+                grid.setDetailsVisible(o, true);
+            });
+        });
+        return cb;
+    }
+
+    private VerticalLayout detailsRenderer(Order o) {
+        VerticalLayout v = new VerticalLayout();
+        o.getMenuItems().forEach(mi -> v.add(new Paragraph(mi.getName() + " — " + mi.getPrice() + "€")));
+        v.add(new Paragraph("Total: " + orderService.getTotalCostOfOrder(o) + "€"));
+        v.add(new Paragraph("Status: " + o.getStatus()));
+        v.add(new Paragraph("Ordered: " + o.getOrderDate().toLocalDate()));
+        return v;
+    }
+
+    private void refreshOrders(Grid<Order> g) {
+        List<Order> list = orderService.getAllOrders();
+        g.setItems(list);
+        list.forEach(o -> g.setDetailsVisible(o, true));
+    }
+
+    private void subscribeOrders(Grid<Order> g) {
+        orderSub = OrderBroadcaster.register(o ->
+                UI.getCurrent().access(() -> refreshOrders(g)));
+        central.addDetachListener(e -> { if (orderSub != null) orderSub.remove(); });
+    }
+
+    /* ───────────────── REPORTS ───────────────── */
+
+    private void showReports() {
+        central.removeAll();
+        central.add(header("Reports"));
+
+        ComboBox<String> period = new ComboBox<>();
+        period.setItems("Daily", "Weekly", "Monthly", "Yearly");
+        period.setValue("Monthly");
+
+        Paragraph revenueP = new Paragraph();
+        revenueP.getStyle().set("font-weight", "600");
+
+        Grid<BestRow> grid = new Grid<>(BestRow.class, false);
+        grid.addColumn(BestRow::name).setHeader("Item");
+        grid.addColumn(BestRow::qty).setHeader("Sold");
+        grid.addColumn(BestRow::income).setHeader("Revenue (€)");
+        grid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
+        grid.setAllRowsVisible(true);
+        grid.setWidthFull();          // use full width
+
+        VerticalLayout block = new VerticalLayout(period, revenueP, grid);
+        block.setPadding(true);
+        block.setSpacing(true);
+        block.setSizeFull();
+        central.add(block);
+        central.expand(block);
+
+        Runnable reload = () -> refreshReports(period.getValue(), revenueP, grid);
+        period.addValueChangeListener(e -> reload.run());
+        reload.run();
+
+        reportSub = OrderBroadcaster.register(o -> UI.getCurrent().access((Command) reload));
+        central.addDetachListener(e -> { if (reportSub != null) reportSub.remove(); });
+    }
+
+    private record BestRow(String name, long qty, double income) {}
+
+    private void refreshReports(String period, Paragraph rev, Grid<BestRow> grid) {
+        List<Order> all = orderService.getAllOrders();
+        LocalDateTime now = LocalDateTime.now();
+
+        List<Order> filtered = switch (period) {
+            case "Daily" -> all.stream().filter(o -> o.getOrderDate().toLocalDate().equals(LocalDate.now())).toList();
+            case "Weekly" -> all.stream().filter(o -> o.getOrderDate().isAfter(now.minusDays(7))).toList();
+            case "Monthly" -> all.stream().filter(o -> o.getOrderDate().isAfter(now.minusDays(30))).toList();
+            case "Yearly" -> all.stream().filter(o -> o.getOrderDate().isAfter(now.minusDays(365))).toList();
+            default -> all;
+        };
+
+        double revenue = filtered.stream().mapToDouble(orderService::getTotalCostOfOrder).sum();
+        rev.setText("Revenue (" + period + "): " + String.format("%.2f", revenue) + " €");
+
+        Map<MenuItem, Long> counts = new HashMap<>();
+        filtered.forEach(o -> o.getMenuItems().forEach(mi -> counts.merge(mi, 1L, Long::sum)));
+
+        List<BestRow> rows = counts.entrySet().stream()
+                .map(e -> new BestRow(e.getKey().getName(), e.getValue(), e.getKey().getPrice() * e.getValue()))
+                .sorted(Comparator.comparingLong(BestRow::qty).reversed())
+                .limit(10)
+                .toList();
+
+        grid.setItems(rows);
+    }
 }
