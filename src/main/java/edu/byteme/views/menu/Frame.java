@@ -11,6 +11,7 @@ import edu.byteme.data.repositories.OrderRepository;
 import edu.byteme.views.MainLayout;
 import jakarta.annotation.security.PermitAll;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,7 +20,7 @@ import java.util.List;
  @Route(value = "", layout = MainLayout.class)
  @PermitAll
  public class Frame extends VerticalLayout {
-
+     private DataSourceTransactionManager DataSourceTransactionManager;
      private final CartComponent cartPanel = new CartComponent();
      private final List<MenuItem> cartItems = new ArrayList<>();
      private List<Order> orderItems = new ArrayList<>();

@@ -15,6 +15,8 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import edu.byteme.data.entities.MenuItem;
 import edu.byteme.data.entities.Order;
 import edu.byteme.views.orders.OrderView;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.stereotype.Component;
 
 import java.text.NumberFormat;
@@ -335,9 +337,7 @@ public class CartComponent extends HorizontalLayout {
         // Click listener for navigation to order
         outerContainer.addClickListener(e -> {
             System.out.println("Order card clicked");
-            UI.getCurrent().navigate(
-                    OrderView.class, (long) order.getId()
-            );
+            //UI.getCurrent().navigate(OrderView.class, (long) order.getId());
         });
 
         // Same style as card for items
