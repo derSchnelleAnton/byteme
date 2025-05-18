@@ -18,6 +18,7 @@ import jakarta.annotation.security.PermitAll;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public class KingsLanding extends HorizontalLayout{
+    private final CartComponent cartPanel;
 
     /*
      * |---------------------------------------------------------------|
@@ -36,14 +37,15 @@ public class KingsLanding extends HorizontalLayout{
      */
 
 
-    private Div cartPanel;
+    //private Div cartPanel;
     private VerticalLayout frame;
     private MenuListView listView;
     private HorizontalLayout footer;
 
 
-    public KingsLanding(){
-        
+    public KingsLanding(CartComponent cartPanel){
+        this.cartPanel = cartPanel;
+
         configureframe();
         configureCart();
         configureFooter(new Component() {
@@ -55,7 +57,7 @@ public class KingsLanding extends HorizontalLayout{
 
 
     private void configureCart() {
-        cartPanel = new CartComponent();
+        //cartPanel = new CartComponent();
         add(cartPanel);
         // add cart here
     }
