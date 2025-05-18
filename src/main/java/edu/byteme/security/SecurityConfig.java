@@ -26,6 +26,7 @@ public class SecurityConfig extends VaadinWebSecurity {
 
     }
 
+
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         super.configure(http);
@@ -43,7 +44,6 @@ public class SecurityConfig extends VaadinWebSecurity {
         // Setze LoginView + Standard-Ziel
         setLoginView(http, LoginView.class, "/menu");
     }
-
 
     @Bean
     public AuthenticationProvider authenticationProvider() {

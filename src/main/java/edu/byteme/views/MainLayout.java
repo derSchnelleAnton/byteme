@@ -5,24 +5,17 @@ import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.Div;
-import com.vaadin.flow.component.html.H1;
-import com.vaadin.flow.component.html.Header;
 import com.vaadin.flow.component.html.ListItem;
 import com.vaadin.flow.component.html.Nav;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
-import com.vaadin.flow.component.page.Push;
 import com.vaadin.flow.component.html.UnorderedList;
-import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.router.Layout;
 import com.vaadin.flow.router.RouterLink;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
-import com.vaadin.flow.theme.Theme;
 import com.vaadin.flow.theme.lumo.LumoUtility.AlignItems;
-import com.vaadin.flow.theme.lumo.LumoUtility.BoxSizing;
 import com.vaadin.flow.theme.lumo.LumoUtility.Display;
-import com.vaadin.flow.theme.lumo.LumoUtility.FlexDirection;
 import com.vaadin.flow.theme.lumo.LumoUtility.FontSize;
 import com.vaadin.flow.theme.lumo.LumoUtility.FontWeight;
 import com.vaadin.flow.theme.lumo.LumoUtility.Gap;
@@ -34,9 +27,8 @@ import com.vaadin.flow.theme.lumo.LumoUtility.Padding;
 import com.vaadin.flow.theme.lumo.LumoUtility.TextColor;
 import com.vaadin.flow.theme.lumo.LumoUtility.Whitespace;
 
-import com.vaadin.flow.theme.lumo.LumoUtility.Width;
 import edu.byteme.views.admin.AdminDashboardView;
-import edu.byteme.views.menu.MenuView;
+import edu.byteme.views.menu.Frame;
 import jakarta.annotation.security.PermitAll;
 import edu.byteme.views.orders.OrderView;
 
@@ -183,7 +175,7 @@ public class MainLayout extends AppLayout {
         List<MenuItemInfo> items = new ArrayList<>();
 
         // Standardmenü für alle Benutzer
-        items.add(new MenuItemInfo("Menu", LineAwesomeIcon.UTENSILS_SOLID.create(), MenuView.class));
+        items.add(new MenuItemInfo("Menu", LineAwesomeIcon.UTENSILS_SOLID.create(), Frame.class));
 
 
         // Nur für Admins:

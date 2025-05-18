@@ -54,6 +54,14 @@ public class SecurityService {
         return (UserDetails) authentication.getPrincipal();
     }
 
+    public Client getCurrentClient() {
+        UserDetails userDetails = getAuthenticatedUser();
+        if (userDetails == null) {
+            return null;
+        }
+        return clientRepository.findByUserName(userDetails.getUsername()).orElse(null);
+    }
+
     public void logout() {
         SecurityContextLogoutHandler logoutHandler = new SecurityContextLogoutHandler();
         logoutHandler.logout(VaadinServletRequest.getCurrent().getHttpServletRequest(), null, null);
