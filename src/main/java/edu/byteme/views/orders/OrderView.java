@@ -1,7 +1,9 @@
 package edu.byteme.views.orders;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Optional;
 
+import com.vaadin.flow.router.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import com.vaadin.flow.component.button.*;
 import com.vaadin.flow.component.dialog.Dialog;
@@ -11,8 +13,6 @@ import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.router.PageTitle;
-import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 
 import edu.byteme.data.entities.Order;
@@ -35,7 +35,7 @@ import edu.byteme.data.entities.MenuItem;
 @PageTitle("Order")
 @Route(value = "order", layout = MainLayout.class)
 @AnonymousAllowed
-public class OrderView extends HorizontalLayout {
+public class OrderView extends HorizontalLayout implements HasUrlParameter<Long> {
     
 
     private Order order;
@@ -54,6 +54,20 @@ public class OrderView extends HorizontalLayout {
         drawViews();
         addSidePannel();
 
+    }
+
+    @Override
+    public void setParameter(BeforeEvent event, @OptionalParameter Long orderId) {
+        if (orderId != null) {
+            Optional<Order> tempOrder = orderService.getOrderById(orderId.intValue());
+            if (tempOrder.isPresent()) {
+                this.order = tempOrder.get();
+            } else {
+                this.order = orderService.getOrdersByClientId(5).get(0);
+            }
+        } else {
+            this.order = orderService.getOrdersByClientId(5).get(0);
+        }
     }
 
     private void addSidePannel() {
@@ -146,4 +160,6 @@ public class OrderView extends HorizontalLayout {
         // attach it to dialog's bottom footer
         dialog.getFooter().add(ok);
     }
+
+
 }

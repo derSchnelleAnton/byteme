@@ -246,7 +246,9 @@ public class CartComponent extends Div {
         // Click listener for navigation to order
         outerContainer.addClickListener(e -> {
             System.out.println("Order card clicked");
-            // UI.getCurrent().navigate(OrderView.class); // SHOULD LINK TO ORDER VIEW OF ORDER
+            UI.getCurrent().navigate(
+                    OrderView.class, (long) order.getId()
+            );
         });
 
         // Style card

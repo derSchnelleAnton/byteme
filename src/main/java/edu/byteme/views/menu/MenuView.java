@@ -81,6 +81,9 @@ public class MenuView extends HorizontalLayout {
             cartPanel.displayCart(cartItems);
         });
 
+
+
+
         // Loads items onto the menu
         List<MenuItem> menuItems = menuRepository.findByIsAvailableTrue();
         MenuListView orderView = new MenuListView(menuItems);
