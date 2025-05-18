@@ -10,6 +10,7 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import edu.byteme.data.entities.MenuItem;
 import edu.byteme.data.entities.Order;
+import edu.byteme.util.Util;
 
 import java.util.List;
 
@@ -91,9 +92,8 @@ public class MenuListView  extends VerticalLayout{
         itemLayout.setSpacing(true);
         itemLayout.setWidthFull();
         itemLayout.setDefaultVerticalComponentAlignment(Alignment.CENTER);
-        itemLayout.getElement().getStyle().set("border-width", "1px");
         // we start with the icon
-        Image  menuProfile = renderImage("images/food.png");
+        Image  menuProfile = renderImage(Util.getPathFromName(item.getName()));
         itemLayout.add(menuProfile);
 
         // vertical layout to hold Name and description as in the wireframe
@@ -137,8 +137,9 @@ public class MenuListView  extends VerticalLayout{
     private Image renderImage(String path) {
 
         Image image = new Image(path, "Menu item image");
-        image.setWidth(60, Unit.PIXELS);
-        image.setHeight(60, Unit.PIXELS);
+        image.addClassName("menu-item-image");
+        image.setWidth(120, Unit.PIXELS);
+        image.setHeight(120, Unit.PIXELS);
         return image;
     }
 

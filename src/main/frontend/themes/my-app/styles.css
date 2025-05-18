@@ -1,11 +1,12 @@
 @import url('./main-layout.css');
 .menu-item{
-    box-sizing: border-box;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
-    background-color: rgba(246, 246, 246, 0.81);
-    border-radius: 15px;
-    padding-left: 1em;
+    border-radius: 5px;
+    height: 120px;
     padding-right: 1em;
+}
+.menu-item-image{
+    border-radius: 5px 0 0 5px;
 }
 
 .menu_cover{

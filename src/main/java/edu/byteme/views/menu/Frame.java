@@ -17,6 +17,7 @@ import edu.byteme.data.entities.MenuItem;
 import edu.byteme.data.entities.Order;
 import edu.byteme.data.repositories.MenuRepository;
 import edu.byteme.services.OrderService;
+import edu.byteme.util.Util;
 import edu.byteme.views.MainLayout;
 import edu.byteme.views.orders.OrderTimeLine;
 import jakarta.annotation.security.PermitAll;
@@ -237,7 +238,7 @@ public class Frame extends VerticalLayout {
 
         HorizontalLayout body = new HorizontalLayout();
         body.setPadding(false);
-        Image img = new Image("images/take-away.png", "Menu image");
+        Image img = new Image(Util.getPathFromName(item.getName()), "Menu image");
         body.add(img, dialogLayout);
         dialog.add(body);
 
