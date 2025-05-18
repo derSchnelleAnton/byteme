@@ -8,11 +8,25 @@ package edu.byteme.data.entities;
  *
  */
 
-import jakarta.persistence.Column;
-import jakarta.persistence.MappedSuperclass;
+
+import jakarta.persistence.*;
 
 @MappedSuperclass // not its own table, just inherited
 public abstract class User extends AbstractEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
+    }
+
+    private String role;
 
     @Column(nullable = false, unique = true)
     private String userName;

@@ -6,11 +6,13 @@
 
 package edu.byteme.views.menu;
 
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.server.auth.AnonymousAllowed;
 import edu.byteme.data.entities.MenuItem;
 import edu.byteme.data.entities.Order;
 import edu.byteme.data.repositories.MenuRepository;
@@ -18,6 +20,9 @@ import edu.byteme.data.repositories.OrderRepository;
 import edu.byteme.views.MainLayout;
 import jakarta.annotation.security.PermitAll;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,6 +30,7 @@ import java.util.List;
 @PageTitle("Menu")
 @Route(value = "", layout = MainLayout.class)
 @PermitAll
+@AnonymousAllowed
 public class MenuView extends HorizontalLayout {
     private CartComponent cartPanel = new CartComponent();
     private List<MenuItem> cartItems = new ArrayList<>();
@@ -87,13 +93,27 @@ public class MenuView extends HorizontalLayout {
         menuContainer.add(orderView);
         orderView.setActionText("Add to cart");
         orderView.setMenuItemEvent(item -> {
-            if (item!= null) {
-                cartItems.add(item);
-                cartPanel.displayCart(cartItems);
+            if (item != null) {
+                if (isUserLoggedIn()) { // Login-Status prüfen
+                    // Benutzer ist eingeloggt -> Artikel hinzufügen
+                    cartItems.add(item);
+                    cartPanel.displayCart(cartItems);
+                    System.out.println("Item added to cart: " + item.getName());
+                } else {
+                    // Benutzer ist nicht eingeloggt -> Weiterleitung zur Login-Seite
+                    System.out.println("User not logged in ...");
+                    UI.getCurrent().navigate("login"); // Weiterleiten zur Login-Route
+                }
             }
         });
 
         add(menuContainer, cartPanel);
         expand(menuContainer);
+    }
+
+    private boolean isUserLoggedIn() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        return authentication != null && authentication.isAuthenticated() &&
+                !(authentication instanceof AnonymousAuthenticationToken);
     }
 }

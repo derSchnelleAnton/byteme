@@ -21,12 +21,15 @@ import edu.byteme.services.OrderService;
 import edu.byteme.views.MainLayout;
 import edu.byteme.views.menu.MenuListView;
 import edu.byteme.views.side_bar.SideBar;
+import jakarta.annotation.security.RolesAllowed;
+import org.springframework.security.core.context.SecurityContextHolder;
+
 import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 
 @PageTitle("Order")
 @Route(value = "order", layout = MainLayout.class)
-@AnonymousAllowed
+@RolesAllowed("ADMIN")
 public class OrderView extends HorizontalLayout {
 
     private final OrderService orderService;

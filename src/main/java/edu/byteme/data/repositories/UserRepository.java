@@ -12,6 +12,6 @@ import org.springframework.data.repository.NoRepositoryBean;
 public interface UserRepository<T extends User> extends JpaRepository<T, Integer> {
 
     // shared user operations
-    T findByUserName(String userName);
-    T findByEmail(String email);
+    boolean findByUserName(String userName);
+    boolean findByEmail(String email);
 }
