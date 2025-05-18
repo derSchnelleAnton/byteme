@@ -3,7 +3,6 @@ package edu.byteme.views.menu;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
-import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.details.Details;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Image;
@@ -16,6 +15,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import edu.byteme.data.entities.MenuItem;
 import edu.byteme.data.entities.Order;
 import edu.byteme.views.orders.OrderView;
+import org.springframework.stereotype.Component;
 
 import java.text.NumberFormat;
 import java.time.LocalDateTime;
@@ -23,7 +23,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.function.Consumer; // For callback function
 
-@CssImport("./themes/my-app/menu-view.css")
+@Component
 public class CartComponent extends HorizontalLayout {
     private final Details cartDetails = new Details("Basket");
     private final Details orderDetails = new Details("Orders");
