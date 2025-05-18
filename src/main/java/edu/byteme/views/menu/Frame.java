@@ -6,17 +6,23 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
-import edu.byteme.data.entities.MenuItem;
+import edu.byteme.data.entities.*;
+import edu.byteme.data.repositories.ClientRepository;
 import edu.byteme.data.repositories.MenuRepository;
+import edu.byteme.security.SecurityService;
+import edu.byteme.services.OrderService;
 import edu.byteme.views.MainLayout;
 import jakarta.annotation.security.PermitAll;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @PageTitle("Menu")
 @Route(value = "", layout = MainLayout.class)
@@ -25,10 +31,16 @@ import java.util.List;
 public class Frame extends VerticalLayout {
     private final List<MenuItem> cartItems = new ArrayList<>(); // No reason why this is up here but don't want to break anything so it stays
     private final CartComponent cartPanel;
+    private final SecurityService securityService;
+    private final ClientRepository clientRepository;
+    private final OrderService orderService;
 
     @Autowired
-    public Frame(MenuRepository menuRepository, CartComponent cartPanel) {
+    public Frame(MenuRepository menuRepository, CartComponent cartPanel, SecurityService securityService, ClientRepository clientRepository, OrderService orderService) {
         this.cartPanel = cartPanel;
+        this.securityService = securityService;
+        this.clientRepository = clientRepository;
+        this.orderService = orderService;
 
         setSizeFull();
         setPadding(false);
@@ -60,7 +72,26 @@ public class Frame extends VerticalLayout {
 
         cartPanel.setOnCheckoutClicked(() -> {
             if (isUserLoggedIn()) {
-                System.out.println("CHECKOUT BUTTON PRESSED - FUNCTIONALITY MISSING");
+                Optional<UserDetails> optionalUser = Optional.ofNullable(securityService.getAuthenticatedUser());
+                optionalUser.ifPresent(user -> {
+                    Optional<Client> optionalClient = clientRepository.findByUserName(user.getUsername());
+                    optionalClient.ifPresentOrElse(
+                            client -> {
+
+                                // BIG ISSUES HERE, PRIMARY KEY VIOLATION
+                                Order tempOrder = new Order();
+                                tempOrder.setClient(client);
+                                tempOrder.setOrderDate(LocalDateTime.now());
+                                tempOrder.setMenuItems(cartItems);
+                                tempOrder.setStatus(OrderStatus.PENDING);
+                                tempOrder.setAdmin(new Admin());
+
+
+                                orderService.saveOrder(tempOrder);
+                            },
+                            () -> System.out.println("Client nicht gefunden!")
+                    );
+                });
             } else {
                 UI.getCurrent().navigate("login");
             }

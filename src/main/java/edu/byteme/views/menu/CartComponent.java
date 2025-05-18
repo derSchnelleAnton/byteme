@@ -16,7 +16,9 @@ import edu.byteme.data.entities.Client;
 import edu.byteme.data.entities.MenuItem;
 import edu.byteme.data.entities.Order;
 import edu.byteme.data.repositories.ClientRepository;
+import edu.byteme.data.repositories.OrderRepository;
 import edu.byteme.security.SecurityService;
+import edu.byteme.services.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
@@ -32,6 +34,7 @@ import java.util.function.Consumer; // For callback function
 public class CartComponent extends HorizontalLayout {
     private final Details cartDetails = new Details("Basket");
     private final Details orderDetails = new Details("Orders");
+    private final OrderRepository orderRepository;
 
     // Callback variables
     private Consumer<MenuItem> onRemoveMenuItem;
@@ -43,7 +46,7 @@ public class CartComponent extends HorizontalLayout {
     private final ClientRepository clientRepository;
 
     @Autowired
-    public CartComponent(SecurityService securityService, ClientRepository clientRepository) {
+    public CartComponent(SecurityService securityService, ClientRepository clientRepository, OrderRepository orderRepository) {
         this.securityService = securityService;
         this.clientRepository = clientRepository;
 
@@ -106,6 +109,7 @@ public class CartComponent extends HorizontalLayout {
         }
 
         add(leftSide, rightSide);
+        this.orderRepository = orderRepository;
     }
 
     /**
