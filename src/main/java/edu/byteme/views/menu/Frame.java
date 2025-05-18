@@ -85,10 +85,17 @@ public class Frame extends VerticalLayout {
          * Below is code for the actual content (left hand side) of the screen
          * @TINSAE
          */
-        List<MenuItem> menuItems = menuRepository.findByIsAvailableTrue();
-        MenuListView orderView = new MenuListView(menuItems);
-        orderView.setActionText("Add to cart");
-        orderView.setMenuItemEvent(item -> {
+        // This is where the items come from
+        List<MenuItem> itemListItems = menuRepository.findByIsAvailableTrue();
+
+        // List is created here
+        LargeItemListComponent itemList = new LargeItemListComponent(itemListItems);
+
+        // This is the name of the button
+        itemList.setActionText("Add to cart");
+
+        // This is what the button does
+        itemList.setMenuItemEvent(item -> {
             if (item != null) {
                 cartItems.add(item);
                 cartPanel.displayCart(cartItems);
@@ -96,10 +103,13 @@ public class Frame extends VerticalLayout {
         });
 
 
+
+
+
         /*
          * Below everything is put together
          */
-        contentArea.add(orderView);
+        contentArea.add(itemList);
         add(contentLayout);
         expand(contentLayout);
     }

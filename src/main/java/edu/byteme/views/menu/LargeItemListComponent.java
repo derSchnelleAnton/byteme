@@ -14,7 +14,7 @@ import edu.byteme.data.entities.Order;
 import java.util.List;
 
 /**
- * Class MenuListView displays MenuItems in a vertical list view
+ * Class LargeItemListComponent displays MenuItems in a vertical list view
  * @author  Patricia
  * @author Mark Böhme
  * @author Adrian tiberiu petre
@@ -22,7 +22,7 @@ import java.util.List;
  * @author Tinsae Ghilay
  */
 
-public class MenuListView  extends VerticalLayout{
+public class LargeItemListComponent extends VerticalLayout{
 
     // list that holds menu items
     List<MenuItem> items;
@@ -35,7 +35,7 @@ public class MenuListView  extends VerticalLayout{
      * or we can use the constructor with menuItems as parameter which would
      * internally call this constructor and the setter
      **/
-    public MenuListView(){
+    public LargeItemListComponent(){
         setSizeFull();
         addClassName("menu-view");
         this.setPadding(true);
@@ -53,7 +53,7 @@ public class MenuListView  extends VerticalLayout{
      * @see MenuItem
      * @see Order
      **/
-    public MenuListView(List<MenuItem> items) {
+    public LargeItemListComponent(List<MenuItem> items) {
         this();
         setItems(items);
     }

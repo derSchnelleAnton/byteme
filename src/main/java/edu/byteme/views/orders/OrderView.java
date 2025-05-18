@@ -12,17 +12,15 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
-import com.vaadin.flow.server.auth.AnonymousAllowed;
 import com.vaadin.flow.shared.Registration;
 import edu.byteme.data.entities.MenuItem;
 import edu.byteme.data.entities.Order;
 import edu.byteme.events.OrderBroadcaster;
 import edu.byteme.services.OrderService;
 import edu.byteme.views.MainLayout;
-import edu.byteme.views.menu.MenuListView;
+import edu.byteme.views.menu.LargeItemListComponent;
 import edu.byteme.views.side_bar.SideBar;
 import jakarta.annotation.security.RolesAllowed;
-import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.time.format.DateTimeFormatter;
 import java.util.Optional;
@@ -35,7 +33,7 @@ public class OrderView extends HorizontalLayout {
     private final OrderService orderService;
     private Registration orderRegistration;
     private Order order;
-    private MenuListView goodiesList;
+    private LargeItemListComponent goodiesList;
     private OrderTimeLine timeLine;
 
     public OrderView(OrderService orderService) {
@@ -90,7 +88,7 @@ public class OrderView extends HorizontalLayout {
 
     private void buildContent() {
         order = orderService.getAllOrders().stream().findFirst().orElse(null);
-        goodiesList = new MenuListView(order.getMenuItems());
+        goodiesList = new LargeItemListComponent(order.getMenuItems());
         goodiesList.setMenuItemEvent(this::openDialog);
 
         VerticalLayout wrapper = new VerticalLayout();

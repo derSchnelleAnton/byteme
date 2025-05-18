@@ -1,10 +1,13 @@
 @import url('./main-layout.css');
 .menu-item{
     box-sizing: border-box;
-    border: black 1px solid;
-    border-radius: 25px;
     padding-left: 1em;
     padding-right: 1em;
+    background-color: #F4F5F7;
+    border-radius: 4px;
+    border-bottom: 1px;
+    border-bottom-style: solid;
+    border-bottom-color: lightgrey;
 }
 vaadin-avatar::part(icon){
     padding: 6px;
