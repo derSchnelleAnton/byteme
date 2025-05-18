@@ -6,6 +6,7 @@
 
 package edu.byteme.views.menu;
 
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -19,6 +20,9 @@ import edu.byteme.data.repositories.OrderRepository;
 import edu.byteme.views.MainLayout;
 import jakarta.annotation.security.PermitAll;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -89,13 +93,27 @@ public class MenuView extends HorizontalLayout {
         menuContainer.add(orderView);
         orderView.setActionText("Add to cart");
         orderView.setMenuItemEvent(item -> {
-            if (item!= null) {
-                cartItems.add(item);
-                cartPanel.displayCart(cartItems);
+            if (item != null) {
+                if (isUserLoggedIn()) { // Login-Status prüfen
+                    // Benutzer ist eingeloggt -> Artikel hinzufügen
+                    cartItems.add(item);
+                    cartPanel.displayCart(cartItems);
+                    System.out.println("Item added to cart: " + item.getName());
+                } else {
+                    // Benutzer ist nicht eingeloggt -> Weiterleitung zur Login-Seite
+                    System.out.println("User not logged in ...");
+                    UI.getCurrent().navigate("login"); // Weiterleiten zur Login-Route
+                }
             }
         });
 
         add(menuContainer, cartPanel);
         expand(menuContainer);
+    }
+
+    private boolean isUserLoggedIn() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        return authentication != null && authentication.isAuthenticated() &&
+                !(authentication instanceof AnonymousAuthenticationToken);
     }
 }
