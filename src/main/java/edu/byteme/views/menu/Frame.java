@@ -2,6 +2,7 @@ package edu.byteme.views.menu;
 
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.dialog.Dialog;
+import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
@@ -14,6 +15,7 @@ import edu.byteme.data.entities.MenuItem;
 import edu.byteme.data.entities.Order;
 import edu.byteme.data.repositories.MenuRepository;
 import edu.byteme.views.MainLayout;
+import edu.byteme.views.orders.OrderTimeLine;
 import jakarta.annotation.security.PermitAll;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
@@ -34,12 +36,16 @@ public class Frame extends VerticalLayout {
     private final MenuListView orderView;
     private Page currentPage;
     private final MenuRepository menuRepository;
+    private final Div footer;
 
 
     @Autowired
     public Frame(MenuRepository menuRepository, CartComponent cartPanel) {
         this.cartPanel = cartPanel;
         this.menuRepository = menuRepository;
+        footer = new Div();
+        footer.addClassName("footer");
+        footer.setVisible(false);
 
         setSizeFull();
         setPadding(false);
@@ -72,6 +78,7 @@ public class Frame extends VerticalLayout {
         cartPanel.setOnCheckoutClicked(() -> {
             if (isUserLoggedIn()) {
                 System.out.println("CHECKOUT BUTTON PRESSED - FUNCTIONALITY MISSING");
+                switchToMenu();
             } else {
                 UI.getCurrent().navigate("login");
             }
@@ -105,7 +112,6 @@ public class Frame extends VerticalLayout {
                     cartPanel.displayCart(cartItems);
                     break;
                 }case ORDERS:{
-
                     openDialog(item);
                 }
             }
@@ -114,20 +120,27 @@ public class Frame extends VerticalLayout {
         // but here we only need register as observers
         cartPanel.setOnOrderSelected(this::switchToOrders);
 
-
-
         /*
          * Below everything is put together
          */
         contentArea.add(orderView);
         add(contentLayout);
         expand(contentLayout);
+        contentArea.add(footer);
+        contentArea.expand(orderView);
     }
 
     private void switchToOrders(Order order) {
         orderView.setItems(order.getMenuItems());
         orderView.setActionText("More");
         currentPage = Page.ORDERS;
+        if(!footer.isVisible()) {
+            footer.setVisible(true);
+        }
+        footer.removeAll();
+        OrderTimeLine timeline = new OrderTimeLine(order);
+        footer.add(timeline);
+
     }
 
     private void switchToMenu(){
@@ -135,6 +148,9 @@ public class Frame extends VerticalLayout {
         orderView.setItems(menuItems);
         orderView.setActionText("Add to cart");
         currentPage = Page.MENU;
+        footer.removeAll();
+        footer.setWidthFull();
+        footer.setVisible(false);
     }
 
     /**
