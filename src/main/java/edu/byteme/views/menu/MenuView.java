@@ -11,6 +11,7 @@ import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.server.auth.AnonymousAllowed;
 import edu.byteme.data.entities.MenuItem;
 import edu.byteme.data.entities.Order;
 import edu.byteme.data.repositories.MenuRepository;
@@ -25,6 +26,7 @@ import java.util.List;
 @PageTitle("Menu")
 @Route(value = "", layout = MainLayout.class)
 @PermitAll
+@AnonymousAllowed
 public class MenuView extends HorizontalLayout {
     private CartComponent cartPanel = new CartComponent();
     private List<MenuItem> cartItems = new ArrayList<>();

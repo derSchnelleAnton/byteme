@@ -40,9 +40,14 @@ import edu.byteme.views.menu.MenuView;
 import jakarta.annotation.security.PermitAll;
 import edu.byteme.views.orders.OrderView;
 
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.vaadin.lineawesome.LineAwesomeIcon;
 
 import edu.byteme.security.SecurityService;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Layout
 @AnonymousAllowed
@@ -97,6 +102,20 @@ public class MainLayout extends AppLayout {
         userInfoLayout.setAlignItems(FlexComponent.Alignment.CENTER); // Vertikale Ausrichtung
         userInfoLayout.setSpacing(true);
 
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+        if (auth != null) {
+            System.out.println("Aktuelle Rollen: " + auth.getAuthorities());
+
+            // Beispielhafte Prüfung:
+            boolean isAdmin = auth.getAuthorities().stream()
+                    .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+
+            if (isAdmin) {
+                System.out.println("Benutzer ist Admin");
+            }
+        }
+
         try {
             var user = securityService.getAuthenticatedUser();
             if (user != null) {
@@ -133,7 +152,21 @@ public class MainLayout extends AppLayout {
         }
 
         // Platz zwischen Titel und Benutzerinformation
+
+
+        Nav nav = new Nav();
+        nav.addClassNames(Display.FLEX, Overflow.AUTO, Padding.Horizontal.MEDIUM, Padding.Vertical.XSMALL);
+
+        UnorderedList list = new UnorderedList();
+        list.addClassNames(Display.FLEX, Gap.SMALL, ListStyleType.NONE, Margin.NONE, Padding.NONE);
+        nav.add(list);
+
+        for (MenuItemInfo menuItem : createMenuItems()) {
+            list.add(menuItem);
+        }
+
         header.add(title);
+        header.add(nav);
         header.add(userInfoLayout);
         header.expand(title); // Titel nimmt den verbliebenen Platz ein
         header.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
@@ -143,10 +176,21 @@ public class MainLayout extends AppLayout {
 
 
     private MenuItemInfo[] createMenuItems() {
-        return new MenuItemInfo[]{
-                new MenuItemInfo("Menu", LineAwesomeIcon.UTENSILS_SOLID.create(), MenuView.class),
-                new MenuItemInfo("Admin", LineAwesomeIcon.TACHOMETER_ALT_SOLID.create(), AdminDashboardView.class),
-                new MenuItemInfo("Orders", LineAwesomeIcon.BOX_OPEN_SOLID.create(), OrderView.class)
-        };
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        boolean isAdmin = auth != null && auth.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+
+        List<MenuItemInfo> items = new ArrayList<>();
+
+        // Standardmenü für alle Benutzer
+        items.add(new MenuItemInfo("Menu", LineAwesomeIcon.UTENSILS_SOLID.create(), MenuView.class));
+
+
+        // Nur für Admins:
+        if (isAdmin) {
+            items.add(new MenuItemInfo("Admin", LineAwesomeIcon.TACHOMETER_ALT_SOLID.create(), AdminDashboardView.class));
+            items.add(new MenuItemInfo("Orders", LineAwesomeIcon.BOX_OPEN_SOLID.create(), OrderView.class));
+        }
+        return items.toArray(new MenuItemInfo[0]);
     }
 }

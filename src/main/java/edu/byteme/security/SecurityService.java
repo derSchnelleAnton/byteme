@@ -80,7 +80,13 @@ public class SecurityService {
         client.setPassword(passwordEncoder.encode(rawPassword)); // Passwort verschlüsseln
         client.setFirstName(firstName);
         client.setLastName(lastName);
-        client.setRole("USER"); // Standardrolle
+
+        // Standardrolle "USER", außer wenn der Benutzername "Admin" ist
+        if ("Admin".equalsIgnoreCase(username)) {
+            client.setRole("ADMIN"); // Rolle "ADMIN" setzen
+        } else {
+            client.setRole("USER"); // Standardrolle setzen
+        }
 
         // Optionale Adresse hinzufügen, falls vollständig
         if (postalCode != null && street != null && houseNumber != null && phone != null) {
