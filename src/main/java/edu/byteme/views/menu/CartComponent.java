@@ -1,6 +1,5 @@
 package edu.byteme.views.menu;
 
-import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.details.Details;
@@ -12,11 +11,14 @@ import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.spring.annotation.UIScope;
+import edu.byteme.data.entities.Client;
 import edu.byteme.data.entities.MenuItem;
 import edu.byteme.data.entities.Order;
-import edu.byteme.views.orders.OrderView;
+import edu.byteme.data.repositories.ClientRepository;
+import edu.byteme.security.SecurityService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import java.text.NumberFormat;
@@ -25,15 +27,26 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.function.Consumer; // For callback function
 
+@UIScope
 @Component
 public class CartComponent extends HorizontalLayout {
     private final Details cartDetails = new Details("Basket");
     private final Details orderDetails = new Details("Orders");
-    private Consumer<MenuItem> onRemoveMenuItem; // Callback member variable
-    private Consumer<MenuItem> setOnAddMenuItem; // Callback member variable
+
+    // Callback variables
+    private Consumer<MenuItem> onRemoveMenuItem;
+    private Consumer<MenuItem> setOnAddMenuItem;
     private Runnable onCheckoutClicked;
 
-    public CartComponent() {
+    // Autowired services
+    private final SecurityService securityService;
+    private final ClientRepository clientRepository;
+
+    @Autowired
+    public CartComponent(SecurityService securityService, ClientRepository clientRepository) {
+        this.securityService = securityService;
+        this.clientRepository = clientRepository;
+
         this.getStyle()
                 .set("max-width", "320px")
                 .set("box-sizing", "border-box");
@@ -44,16 +57,23 @@ public class CartComponent extends HorizontalLayout {
         leftSide.getStyle()
                 .set("width", "20px")
                 .set("border-right", "1px solid lightgray")
+                .set("cursor", "pointer")
                 .set("box-sizing", "border-box");
         leftSide.setHeightFull();
         leftSide.setAlignItems(FlexComponent.Alignment.CENTER);
-        leftSide.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
+        //leftSide.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
 
+        /*
         Image iconImage = new Image("images/right.png", "images/right.png");
         iconImage.setWidth("25px");
-        iconImage.getStyle().set("filter", "grayscale(0.5)");
 
         leftSide.add(iconImage);
+        Cant use picture because it would not load due to security reasons
+        */
+
+        Paragraph sidebarLabel = new Paragraph("🛒");
+
+        leftSide.add(sidebarLabel);
 
         // Right side contains menu and order items
         VerticalLayout rightSide = new VerticalLayout();
@@ -70,20 +90,36 @@ public class CartComponent extends HorizontalLayout {
 
             rightSide.setVisible(!wasVisible);
             rightSide.setWidth(wasVisible ? "0px" : "300px");
-            iconImage.getStyle().set("transform", wasVisible ? "rotate(180deg)" : "rotate(0deg)");
+            //iconImage.getStyle().set("transform", wasVisible ? "rotate(180deg)" : "rotate(0deg)");
         });
 
-        VerticalLayout disclaimers = new VerticalLayout();
-        disclaimers.add(
-                new Paragraph("Created by mci Students")
-        );
-
-        // Everything expanded by default
+        rightSide.add(cartDetails);
         cartDetails.setOpened(true);
-        orderDetails.setOpened(true);
-        rightSide.add(cartDetails, orderDetails);
+
+        List<Order> orders = fetchUserOrders();
+
+        // Only display orders if there are orders, otherwise only display basket
+        if (!orders.isEmpty()) {
+            rightSide.add(orderDetails);
+            displayOrders(orders);
+            orderDetails.setOpened(true);
+        }
 
         add(leftSide, rightSide);
+    }
+
+    /**
+     *
+     * @return Orders for current user
+     */
+    private List<Order> fetchUserOrders() {
+        UserDetails userDetails = securityService.getAuthenticatedUser();
+        if (userDetails != null) {
+            return clientRepository.findByUserNameWithOrders(userDetails.getUsername())
+                    .map(Client::getOrders)
+                    .orElse(List.of());
+        }
+        return List.of();
     }
 
     /**
@@ -118,44 +154,46 @@ public class CartComponent extends HorizontalLayout {
         cartDetails.removeAll();
 
         double total = 0;
-        Map<String, Integer> itemsMap = new HashMap<>();
 
-        for (MenuItem item : items) {
-            // If the item is already counted, skip it
-            if (itemsMap.containsKey(item.getName())) continue;
+        if (!items.isEmpty()) {
+            Map<String, Integer> itemsMap = new HashMap<>();
 
-            int quantity = 0;
-            for (MenuItem innerItem : items)
-                if (innerItem.getName().equals(item.getName()))
-                    quantity++;
+            for (MenuItem item : items) {
+                // If the item is already counted, skip it
+                if (itemsMap.containsKey(item.getName())) continue;
 
-            // Add name of item to map to mark it as count
-            itemsMap.put(item.getName(), quantity);
+                int quantity = 0;
+                for (MenuItem innerItem : items)
+                    if (innerItem.getName().equals(item.getName()))
+                        quantity++;
 
-            // Callback function and remove button
-            Button removeButton = new Button(new Icon(VaadinIcon.MINUS), e -> {
-                if (onRemoveMenuItem != null)
-                    onRemoveMenuItem.accept(item);
-            });
+                // Add name of item to map to mark it as count
+                itemsMap.put(item.getName(), quantity);
 
-            // Callback function and add button
-            Button addButton = new Button(new Icon(VaadinIcon.PLUS), e -> {
-                if (setOnAddMenuItem != null)
-                    setOnAddMenuItem.accept(item);
-            });
+                // Callback function and remove button
+                Button removeButton = new Button(new Icon(VaadinIcon.MINUS), e -> {
+                    if (onRemoveMenuItem != null)
+                        onRemoveMenuItem.accept(item);
+                });
 
-            VerticalLayout itemCard = getCartCard(
-                    item.getName(),
-                    item.getPrice() * quantity,
-                    quantity,
-                    removeButton,
-                    addButton
-            );
+                // Callback function and add button
+                Button addButton = new Button(new Icon(VaadinIcon.PLUS), e -> {
+                    if (setOnAddMenuItem != null)
+                        setOnAddMenuItem.accept(item);
+                });
 
-            // Add new card on top
-            cartDetails.addComponentAsFirst(itemCard);
+                VerticalLayout itemCard = getCartCard(
+                        item.getName(),
+                        item.getPrice() * quantity,
+                        quantity,
+                        removeButton,
+                        addButton
+                );
+                // Add new card on top
+                cartDetails.addComponentAsFirst(itemCard);
 
-            total += (item.getPrice() * quantity);
+                total += (item.getPrice() * quantity);
+            }
         }
         // Add checkout button at the very top
         cartDetails.addComponentAsFirst(getCheckoutButton(total));
@@ -336,8 +374,10 @@ public class CartComponent extends HorizontalLayout {
 
         // Click listener for navigation to order
         outerContainer.addClickListener(e -> {
-            System.out.println("Order card clicked");
-            //UI.getCurrent().navigate(OrderView.class, (long) order.getId());
+            System.out.println("ORDER CARD PRESSED - FUNCTIONALITY MISSING");
+            /*
+             * @TINSAE
+             */
         });
 
         // Same style as card for items

@@ -6,6 +6,8 @@ package edu.byteme.data.repositories;
 
 import edu.byteme.data.entities.Client;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.Optional;
 
@@ -22,4 +24,8 @@ public interface ClientRepository extends JpaRepository<Client, Integer> {
 
     // Existenzprüfung für E-Mail
     boolean existsByEmail(String email);
+
+    // Required for cart
+    @Query("SELECT c FROM Client c LEFT JOIN FETCH c.orders WHERE c.userName = :userName")
+    Optional<Client> findByUserNameWithOrders(@Param("userName") String userName);
 }
