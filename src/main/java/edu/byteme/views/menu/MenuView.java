@@ -22,6 +22,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * @deprecated
+ */
 @PageTitle("Menu")
 @Route(value = "Hidden", layout = MainLayout.class)
 @PermitAll

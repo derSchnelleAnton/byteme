@@ -22,7 +22,6 @@ import java.util.List;
  * @author Tinsae Ghilay
  */
 
-
 public class MenuListView  extends VerticalLayout{
 
     // list that holds menu items
