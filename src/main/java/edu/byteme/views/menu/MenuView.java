@@ -23,7 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @PageTitle("Menu")
-@Route(value = "", layout = MainLayout.class)
+@Route(value = "Hidden", layout = MainLayout.class)
 @PermitAll
 public class MenuView extends HorizontalLayout {
     private CartComponent cartPanel = new CartComponent();

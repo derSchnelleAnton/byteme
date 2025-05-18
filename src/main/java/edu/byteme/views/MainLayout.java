@@ -2,7 +2,6 @@ package edu.byteme.views;
 
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.applayout.AppLayout;
-import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.Header;
 import com.vaadin.flow.component.html.ListItem;
@@ -29,7 +28,7 @@ import com.vaadin.flow.theme.lumo.LumoUtility.TextColor;
 import com.vaadin.flow.theme.lumo.LumoUtility.Whitespace;
 import com.vaadin.flow.theme.lumo.LumoUtility.Width;
 import edu.byteme.views.admin.AdminDashboardView;
-import edu.byteme.views.menu.MenuView;
+import edu.byteme.views.menu.Frame;
 import edu.byteme.views.orders.OrderView;
 
 import org.vaadin.lineawesome.LineAwesomeIcon;
@@ -99,7 +98,7 @@ public class MainLayout extends AppLayout {
 
     private MenuItemInfo[] createMenuItems() {
         return new MenuItemInfo[]{
-                new MenuItemInfo("Menu", LineAwesomeIcon.UTENSILS_SOLID.create(), MenuView.class),
+                new MenuItemInfo("Menu", LineAwesomeIcon.UTENSILS_SOLID.create(), Frame.class),
                 new MenuItemInfo("Admin", LineAwesomeIcon.TACHOMETER_ALT_SOLID.create(), AdminDashboardView.class),
                 new MenuItemInfo("Orders", LineAwesomeIcon.BOX_OPEN_SOLID.create(), OrderView.class)
         };
