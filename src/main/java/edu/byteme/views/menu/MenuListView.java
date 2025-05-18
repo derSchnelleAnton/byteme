@@ -22,13 +22,12 @@ import java.util.List;
  * @author Tinsae Ghilay
  */
 
-
 public class MenuListView  extends VerticalLayout{
 
     // list that holds menu items
-    List<MenuItem> items;
+    private List<MenuItem> items;
     // default button text
-    String actionText =  "More";
+    private String actionText =  "More";
 
 
     /**
@@ -177,5 +176,5 @@ public class MenuListView  extends VerticalLayout{
     public void setMenuItemEvent(MenuItemEvent menuItemEvent) {
         this.menuItemEvent = menuItemEvent;
     }
-    
+
 }

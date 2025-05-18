@@ -70,7 +70,7 @@ public class OrderService {
 
     /* ───────────── calculations ───────────── */
 
-    public double getTotalCostOfOrder(Order order) {
+    public static double getTotalCostOfOrder(Order order) {
         double price = 0.0;
         for (MenuItem item : order.getMenuItems()) {
             price += item.getPrice();
