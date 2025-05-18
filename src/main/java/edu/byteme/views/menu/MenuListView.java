@@ -27,7 +27,7 @@ public class MenuListView  extends VerticalLayout{
     // list that holds menu items
     private List<MenuItem> items;
     // default button text
-    private String actionText =  "More";
+    private String actionText;
 
 
     /**
@@ -93,7 +93,7 @@ public class MenuListView  extends VerticalLayout{
         itemLayout.setDefaultVerticalComponentAlignment(Alignment.CENTER);
         itemLayout.getElement().getStyle().set("border-width", "1px");
         // we start with the icon
-        Image  menuProfile = renderImage("icons/icon.png");
+        Image  menuProfile = renderImage("images/food.png");
         itemLayout.add(menuProfile);
 
         // vertical layout to hold Name and description as in the wireframe
@@ -111,16 +111,20 @@ public class MenuListView  extends VerticalLayout{
         Paragraph price = new Paragraph(item.getPrice()+"€");
         itemLayout.add(price);
         // button text
-        Button actionButton = new Button();
-        actionButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        // button click listener
-        actionButton.addClickListener(e -> {
-            if(this.menuItemEvent != null){
-                menuItemEvent.onClick(item);
-            }
-        });
-        itemLayout.add(actionButton);
-        actionButton.setText(actionText);
+        // optional to set it null to have no button at all
+        if(actionText != null){
+
+            Button actionButton = new Button();
+            actionButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+            // button click listener
+            actionButton.addClickListener(e -> {
+                if(this.menuItemEvent != null){
+                    menuItemEvent.onClick(item);
+                }
+            });
+            itemLayout.add(actionButton);
+            actionButton.setText(actionText);
+        }
         // and we add it to the parent.
         this.add(itemLayout);
     }

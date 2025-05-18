@@ -1,6 +1,8 @@
 package edu.byteme.views.menu;
 
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Image;
@@ -14,6 +16,7 @@ import com.vaadin.flow.server.auth.AnonymousAllowed;
 import edu.byteme.data.entities.MenuItem;
 import edu.byteme.data.entities.Order;
 import edu.byteme.data.repositories.MenuRepository;
+import edu.byteme.services.OrderService;
 import edu.byteme.views.MainLayout;
 import edu.byteme.views.orders.OrderTimeLine;
 import jakarta.annotation.security.PermitAll;
@@ -21,6 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.vaadin.lineawesome.LineAwesomeIcon;
 
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -34,18 +38,22 @@ public class Frame extends VerticalLayout {
     private final List<MenuItem> cartItems = new ArrayList<>(); // No reason why this is up here but don't want to break anything so it stays
     private final CartComponent cartPanel;
     private final MenuListView orderView;
+    //private final OrderService orderService;
     private Page currentPage;
     private final MenuRepository menuRepository;
     private final Div footer;
+    private Component fab;
 
 
     @Autowired
-    public Frame(MenuRepository menuRepository, CartComponent cartPanel) {
+    public Frame(MenuRepository menuRepository, CartComponent cartPanel, OrderService orderService) {
         this.cartPanel = cartPanel;
         this.menuRepository = menuRepository;
         footer = new Div();
         footer.addClassName("footer");
         footer.setVisible(false);
+        fab = addHomeRouter();
+        add(fab);
 
         setSizeFull();
         setPadding(false);
@@ -77,8 +85,8 @@ public class Frame extends VerticalLayout {
 
         cartPanel.setOnCheckoutClicked(() -> {
             if (isUserLoggedIn()) {
-                System.out.println("CHECKOUT BUTTON PRESSED - FUNCTIONALITY MISSING");
-                switchToMenu();
+                //switchToMenu();
+                switchToPlaceOrder();
             } else {
                 UI.getCurrent().navigate("login");
             }
@@ -102,6 +110,7 @@ public class Frame extends VerticalLayout {
         /*
          * Below is code for the actual content (left hand side) of the screen
          * @TINSAE
+         * DONE
          */
         orderView = new MenuListView();
         switchToMenu();
@@ -114,6 +123,7 @@ public class Frame extends VerticalLayout {
                 }case ORDERS:{
                     openDialog(item);
                 }
+                // place order doesnt have a button
             }
         });
 
@@ -128,6 +138,7 @@ public class Frame extends VerticalLayout {
         expand(contentLayout);
         contentArea.add(footer);
         contentArea.expand(orderView);
+        contentArea.setHorizontalComponentAlignment(Alignment.CENTER, footer);
     }
 
     private void switchToOrders(Order order) {
@@ -140,6 +151,7 @@ public class Frame extends VerticalLayout {
         footer.removeAll();
         OrderTimeLine timeline = new OrderTimeLine(order);
         footer.add(timeline);
+        fab.setVisible(currentPage == Page.ORDERS);
 
     }
 
@@ -151,6 +163,44 @@ public class Frame extends VerticalLayout {
         footer.removeAll();
         footer.setWidthFull();
         footer.setVisible(false);
+        fab.setVisible(currentPage == Page.ORDERS);
+
+    }
+
+    private void switchToPlaceOrder(){
+        orderView.setItems(cartItems);
+        orderView.setActionText(null);
+        currentPage = Page.CART;
+        if(!footer.isVisible()) {
+            footer.setVisible(true);
+        }
+        footer.removeAll();
+        footer.add(createButtons());
+        fab.setVisible(currentPage == Page.ORDERS);
+
+
+    }
+
+
+    private Component createButtons(){
+        HorizontalLayout buttonLayout = new HorizontalLayout();
+        buttonLayout.setSpacing(true);
+        buttonLayout.getStyle()
+                .set("padding", "16px")
+                .set("justify-content", "space-around");
+        buttonLayout.setJustifyContentMode(JustifyContentMode.CENTER);
+        buttonLayout.setWidthFull();
+        Button backButton = new Button("Back");
+        backButton.addClickListener(event -> {
+            switchToMenu();
+        });
+        Button orderButton = new Button("Order");
+        orderButton.addClickListener(event -> {
+            //orderService.placeOrder(cartItems,CURENT USER IS NEEDED HERE)
+            System.out.println("ORDER BUTTON PRESSED - FUNCTIONALITY MISSING");
+        });
+        buttonLayout.add(backButton, orderButton);
+        return buttonLayout;
     }
 
     /**
@@ -195,4 +245,14 @@ public class Frame extends VerticalLayout {
         add(dialog);
         dialog.open();
     }
+
+    // return button for OrdersView
+    private Component addHomeRouter() {
+        Button fab = new Button(LineAwesomeIcon.ARROW_LEFT_SOLID.create(), e -> {
+            switchToMenu();
+        });
+        fab.addClassName("fab");
+        return fab;
+    }
+
 }
