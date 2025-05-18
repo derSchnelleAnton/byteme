@@ -1,18 +1,24 @@
 package edu.byteme.views;
 
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.applayout.AppLayout;
+import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.Header;
 import com.vaadin.flow.component.html.ListItem;
 import com.vaadin.flow.component.html.Nav;
 import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.page.Push;
 import com.vaadin.flow.component.html.UnorderedList;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.router.Layout;
 import com.vaadin.flow.router.RouterLink;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
+import com.vaadin.flow.theme.Theme;
 import com.vaadin.flow.theme.lumo.LumoUtility.AlignItems;
 import com.vaadin.flow.theme.lumo.LumoUtility.BoxSizing;
 import com.vaadin.flow.theme.lumo.LumoUtility.Display;
@@ -27,20 +33,23 @@ import com.vaadin.flow.theme.lumo.LumoUtility.Overflow;
 import com.vaadin.flow.theme.lumo.LumoUtility.Padding;
 import com.vaadin.flow.theme.lumo.LumoUtility.TextColor;
 import com.vaadin.flow.theme.lumo.LumoUtility.Whitespace;
+
 import com.vaadin.flow.theme.lumo.LumoUtility.Width;
 import edu.byteme.views.admin.AdminDashboardView;
 import edu.byteme.views.menu.MenuView;
+import jakarta.annotation.security.PermitAll;
 import edu.byteme.views.orders.OrderView;
 
 import org.vaadin.lineawesome.LineAwesomeIcon;
 
-/*
- * MainLayout — top-level layout containing the app navigation header
- */
+import edu.byteme.security.SecurityService;
 
 @Layout
 @AnonymousAllowed
+@PermitAll
 public class MainLayout extends AppLayout {
+
+    private final SecurityService securityService;
 
     public static class MenuItemInfo extends ListItem {
 
@@ -67,35 +76,71 @@ public class MainLayout extends AppLayout {
         }
     }
 
-    public MainLayout() {
+    public MainLayout(SecurityService securityService) {
+        this.securityService = securityService;
         addToNavbar(createHeaderContent());
     }
 
     private Component createHeaderContent() {
-        Header header = new Header();
-        header.addClassNames(BoxSizing.BORDER, Display.FLEX, FlexDirection.COLUMN, Width.FULL);
+        HorizontalLayout header = new HorizontalLayout();
+        header.setWidthFull();
+        header.setPadding(true);
+        header.setAlignItems(FlexComponent.Alignment.CENTER); // Vertikale Ausrichtung
 
-        HorizontalLayout layout = new HorizontalLayout();
-        layout.addClassNames(Display.FLEX, AlignItems.CENTER, Padding.Horizontal.LARGE);
+        // Linke Seite des Headers (kann für ein Logo oder Navigation verwendet werden)
+        Div title = new Div();
+        title.setText("ByteMe" + " - Ordering System");
+        title.addClassName("app-title");
 
-        H1 appName = new H1("ByteMe");
-        appName.addClassNames(Margin.Vertical.MEDIUM, Margin.End.AUTO, FontSize.LARGE);
-        layout.add(appName);
+        // Rechte Seite des Headers — Benutzerinfo und Login/Logout-Button
+        HorizontalLayout userInfoLayout = new HorizontalLayout();
+        userInfoLayout.setAlignItems(FlexComponent.Alignment.CENTER); // Vertikale Ausrichtung
+        userInfoLayout.setSpacing(true);
 
-        Nav nav = new Nav();
-        nav.addClassNames(Display.FLEX, Overflow.AUTO, Padding.Horizontal.MEDIUM, Padding.Vertical.XSMALL);
+        try {
+            var user = securityService.getAuthenticatedUser();
+            if (user != null) {
+                // Benutzer authentifiziert
+                Span greeting = new Span("Hello " + user.getUsername());
+                Button logoutButton = new Button("Logout", event -> {
+                    securityService.logout();
+                    UI.getCurrent().getPage().reload();
+                });
 
-        UnorderedList list = new UnorderedList();
-        list.addClassNames(Display.FLEX, Gap.SMALL, ListStyleType.NONE, Margin.NONE, Padding.NONE);
-        nav.add(list);
+                // UI-sicherer Zugriff
+                UI ui = UI.getCurrent();
+                ui.access(() -> {
+                    userInfoLayout.removeAll(); // Bereinigung
+                    userInfoLayout.add(greeting, logoutButton); // Hinzufügen neuer UI-Elemente
+                });
+            } else {
+                // Benutzer nicht authentifiziert (Login anzeigen)
+                Button loginButton = new Button("Login", event -> UI.getCurrent().navigate("login"));
 
-        for (MenuItemInfo menuItem : createMenuItems()) {
-            list.add(menuItem);
+                UI ui = UI.getCurrent();
+                ui.access(() -> {
+                    userInfoLayout.removeAll();
+                    userInfoLayout.add(loginButton);
+                });
+            }
+        } catch (Exception e) {
+            // Fehler behandeln
+            UI.getCurrent().access(() -> {
+                userInfoLayout.removeAll();
+                Button loginButton = new Button("Login", event -> UI.getCurrent().navigate("login"));
+                userInfoLayout.add(loginButton);
+            });
         }
 
-        header.add(layout, nav);
+        // Platz zwischen Titel und Benutzerinformation
+        header.add(title);
+        header.add(userInfoLayout);
+        header.expand(title); // Titel nimmt den verbliebenen Platz ein
+        header.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
+
         return header;
     }
+
 
     private MenuItemInfo[] createMenuItems() {
         return new MenuItemInfo[]{
