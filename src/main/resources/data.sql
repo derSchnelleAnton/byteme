@@ -16,7 +16,7 @@ INSERT INTO users (user_name,email,password,first_name,last_name,role,created_at
 ('anton'   ,'anton@mci.at'   ,'pass123','Anton'   ,'Woerndle','client' ,NOW(),NOW()),
 ('marc'    ,'marc@mci.at'    ,'pass123','Marc'    ,'Boehme'  ,'client' ,NOW(),NOW()),
 ('patricia','patricia@mci.at','pass123','Patricia','Fueruter','client' ,NOW(),NOW()),
-('tinsae'  ,'tinsae@mci.at'  ,'{bcrypt}$2a$12$P12N6KrvhcDCASyQXg78Zu9iIJzpBnpAZ7NxX4fyLr44rK0xA5l4u','Tinsae'  ,'Ghilay'  ,'client' ,NOW(),NOW());
+('tinsae'  ,'tinsae@mci.at'  ,'$2a$12$P12N6KrvhcDCASyQXg78Zu9iIJzpBnpAZ7NxX4fyLr44rK0xA5l4u','Tinsae'  ,'Ghilay'  ,'client' ,NOW(),NOW());
 
 -- ─────────────────────────────────────────────────────────────
 -- MENU‐ITEM SEED (10 items)
