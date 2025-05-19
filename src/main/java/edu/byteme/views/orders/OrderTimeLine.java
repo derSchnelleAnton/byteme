@@ -7,15 +7,14 @@ import com.vaadin.flow.component.progressbar.ProgressBar;
 
 import edu.byteme.data.entities.Order;
 import edu.byteme.data.entities.OrderStatus;
+import edu.byteme.services.OrderService;
 
 public class OrderTimeLine extends Div {
 
     private Order order;
-    String total;
-
-    public OrderTimeLine(Order order, String total){
+    public OrderTimeLine(Order order){
         this.order = order;
-        this.total = total;
+        //setId("timeline-container");
         draw();
 
     }
@@ -44,7 +43,7 @@ public class OrderTimeLine extends Div {
         container.add(progressBar, circle1, circle2, circle3);
         HorizontalLayout bottomBar = new HorizontalLayout();
         bottomBar.addClassName("total");
-        bottomBar.add(new Paragraph("Total price "), new Paragraph(total));
+        bottomBar.add(new Paragraph("Total price "), new Paragraph(OrderService.getTotalCostOfOrder(order)+"$"));
         add(bottomBar,container);
 
     }
@@ -53,11 +52,11 @@ public class OrderTimeLine extends Div {
     private double mapEnumToPercent(OrderStatus status){
 
         switch (status) {
-            case PENDING:
-                return 0.25;
             case CONFIRMED:
-                return 0.50;
+                return 0.15;
             case IN_PROGRESS:
+                return 0.35;
+            case IN_DELIVERY:
                 return 0.75;
             case DELIVERED:
                 return 1.0;
@@ -67,8 +66,7 @@ public class OrderTimeLine extends Div {
     }
 
 
-    public void setValues(Order order, String total){
-        this.total = total;
+    public void setValues(Order order){
         this.order = order;
         removeAll();
         draw();

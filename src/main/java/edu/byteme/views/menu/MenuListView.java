@@ -10,6 +10,7 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import edu.byteme.data.entities.MenuItem;
 import edu.byteme.data.entities.Order;
+import edu.byteme.util.Util;
 
 import java.util.List;
 
@@ -25,9 +26,9 @@ import java.util.List;
 public class MenuListView  extends VerticalLayout{
 
     // list that holds menu items
-    List<MenuItem> items;
+    private List<MenuItem> items;
     // default button text
-    String actionText =  "More";
+    private String actionText;
 
 
     /**
@@ -91,9 +92,8 @@ public class MenuListView  extends VerticalLayout{
         itemLayout.setSpacing(true);
         itemLayout.setWidthFull();
         itemLayout.setDefaultVerticalComponentAlignment(Alignment.CENTER);
-        itemLayout.getElement().getStyle().set("border-width", "1px");
         // we start with the icon
-        Image  menuProfile = renderImage("icons/icon.png");
+        Image  menuProfile = renderImage(Util.getPathFromName(item.getName()));
         itemLayout.add(menuProfile);
 
         // vertical layout to hold Name and description as in the wireframe
@@ -111,16 +111,20 @@ public class MenuListView  extends VerticalLayout{
         Paragraph price = new Paragraph(item.getPrice()+"€");
         itemLayout.add(price);
         // button text
-        Button actionButton = new Button();
-        actionButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        // button click listener
-        actionButton.addClickListener(e -> {
-            if(this.menuItemEvent != null){
-                menuItemEvent.onClick(item);
-            }
-        });
-        itemLayout.add(actionButton);
-        actionButton.setText(actionText);
+        // optional to set it null to have no button at all
+        if(actionText != null){
+
+            Button actionButton = new Button();
+            actionButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+            // button click listener
+            actionButton.addClickListener(e -> {
+                if(this.menuItemEvent != null){
+                    menuItemEvent.onClick(item);
+                }
+            });
+            itemLayout.add(actionButton);
+            actionButton.setText(actionText);
+        }
         // and we add it to the parent.
         this.add(itemLayout);
     }
@@ -133,8 +137,9 @@ public class MenuListView  extends VerticalLayout{
     private Image renderImage(String path) {
 
         Image image = new Image(path, "Menu item image");
-        image.setWidth(60, Unit.PIXELS);
-        image.setHeight(60, Unit.PIXELS);
+        image.addClassName("menu-item-image");
+        image.setWidth(120, Unit.PIXELS);
+        image.setHeight(120, Unit.PIXELS);
         return image;
     }
 
@@ -176,5 +181,5 @@ public class MenuListView  extends VerticalLayout{
     public void setMenuItemEvent(MenuItemEvent menuItemEvent) {
         this.menuItemEvent = menuItemEvent;
     }
-    
+
 }

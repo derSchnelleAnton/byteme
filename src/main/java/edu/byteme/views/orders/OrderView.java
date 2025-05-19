@@ -65,7 +65,7 @@ public class OrderView extends HorizontalLayout {
         ui.access(() -> {
             order = updated;
             goodiesList.setItems(order.getMenuItems());
-            timeLine.setValues(order, orderService.getTotalCostOfOrder(order) + "€");
+            timeLine.setValues(order);
         });
     }
 
@@ -82,7 +82,7 @@ public class OrderView extends HorizontalLayout {
             order = fresh.orElse(selected);
 
             goodiesList.setItems(order.getMenuItems());
-            timeLine.setValues(order, orderService.getTotalCostOfOrder(order) + "€");
+            timeLine.setValues(order);
         });
         side.add(bar);
         add(side);
@@ -95,7 +95,7 @@ public class OrderView extends HorizontalLayout {
 
         VerticalLayout wrapper = new VerticalLayout();
         wrapper.setHeightFull();
-        timeLine = new OrderTimeLine(order, orderService.getTotalCostOfOrder(order) + "€");
+        timeLine = new OrderTimeLine(order);
         Div footer = new Div(timeLine);
         footer.setWidthFull();
 

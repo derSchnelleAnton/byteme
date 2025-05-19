@@ -1,5 +1,6 @@
 package edu.byteme.views.menu;
 
+import com.vaadin.flow.component.ComponentEventListener;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.details.Details;
@@ -17,6 +18,7 @@ import edu.byteme.data.entities.MenuItem;
 import edu.byteme.data.entities.Order;
 import edu.byteme.data.repositories.ClientRepository;
 import edu.byteme.security.SecurityService;
+import edu.byteme.services.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
@@ -37,6 +39,7 @@ public class CartComponent extends HorizontalLayout {
     private Consumer<MenuItem> onRemoveMenuItem;
     private Consumer<MenuItem> setOnAddMenuItem;
     private Runnable onCheckoutClicked;
+    private OnOrderSelectedListener onOrderSelected;
 
     // Autowired services
     private final SecurityService securityService;
@@ -128,6 +131,14 @@ public class CartComponent extends HorizontalLayout {
      */
     public void setOnCheckoutClicked(Runnable callback) {
         this.onCheckoutClicked = callback;
+    }
+
+    /**
+     * Callback method that informs frame when order button is clicked
+     * @param onOrderSelectedListener listener
+     */
+    public void setOnOrderSelected(OnOrderSelectedListener onOrderSelectedListener) {
+        this.onOrderSelected = onOrderSelectedListener;
     }
 
     /**
@@ -317,6 +328,7 @@ public class CartComponent extends HorizontalLayout {
         orderDetails.removeAll();
         for (Order order : orders)
             orderDetails.add(getOrderCard(order));
+
     }
 
     /**
@@ -335,11 +347,8 @@ public class CartComponent extends HorizontalLayout {
                 .set("font-weight", "bold")
                 .set("font-style", "underline");
 
-        double priceCalculated = 0;
-        List<MenuItem> menuItemsForPrice = order.getMenuItems();
-        for (MenuItem item : menuItemsForPrice) {
-            priceCalculated += item.getPrice();
-        }
+        // we have a method that calculates total cost of order in Service
+        double priceCalculated = OrderService.getTotalCostOfOrder(order);
 
         // Order total
         NumberFormat currencyFormat = NumberFormat.getNumberInstance(Locale.US);
@@ -376,8 +385,13 @@ public class CartComponent extends HorizontalLayout {
         outerContainer.addClickListener(e -> {
             System.out.println("ORDER CARD PRESSED - FUNCTIONALITY MISSING");
             /*
-             * @TINSAE
+             * @ANTON
+             * We only need to inform observers here if any
+             * and in Frame we register an observer and attach it to this component
              */
+            if(onOrderSelected != null){
+                onOrderSelected.onOrderSelected(order);
+            }
         });
 
         // Same style as card for items
@@ -392,5 +406,13 @@ public class CartComponent extends HorizontalLayout {
                 .set("width", "250px");
 
         return outerContainer;
+    }
+
+    /**
+     * This is an interface which an observer class/component sets or implements
+     * and the method here gets called by observable
+     */
+    public interface OnOrderSelectedListener {
+        void onOrderSelected(Order order);
     }
 }

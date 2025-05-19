@@ -6,13 +6,11 @@ package edu.byteme.services;
 import java.util.List;
 import java.util.Optional;
 
+import edu.byteme.data.entities.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import edu.byteme.data.entities.MenuItem;
-import edu.byteme.data.entities.Order;
-import edu.byteme.data.entities.OrderStatus;
 import edu.byteme.data.repositories.OrderRepository;
 import edu.byteme.events.OrderBroadcaster;
 
@@ -70,7 +68,7 @@ public class OrderService {
 
     /* ───────────── calculations ───────────── */
 
-    public double getTotalCostOfOrder(Order order) {
+    public static double getTotalCostOfOrder(Order order) {
         double price = 0.0;
         for (MenuItem item : order.getMenuItems()) {
             price += item.getPrice();
@@ -106,6 +104,15 @@ public class OrderService {
         Order saved = orderRepository.save(order);
         OrderBroadcaster.broadcast(saved);
         return saved;
+    }
+
+    public Order placeOrder(List<MenuItem> items, Client client) {
+        Order order = new Order();
+        order.setStatus(OrderStatus.PENDING);
+        order.setMenuItems(items);
+        order.setClient(client);
+        return  orderRepository.save(order);
+
     }
 
     /* dummy to satisfy legacy calls */
