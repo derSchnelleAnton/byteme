@@ -107,12 +107,26 @@ public class OrderService {
     }
 
     public Order placeOrder(List<MenuItem> items, Client client) {
+        if(items.isEmpty() || client == null) {
+            throw new IllegalArgumentException();
+        }
         Order order = new Order();
         order.setStatus(OrderStatus.PENDING);
         order.setMenuItems(items);
         order.setClient(client);
         return  orderRepository.save(order);
 
+    }
+
+    public Order setAdminToOrder(Order order, Admin admin) {
+        if(order.getAdmin() == admin) {
+            return order;
+        }
+        if(admin == null) {
+            return null;
+        }
+        order.setAdmin(admin);
+        return orderRepository.save(order);
     }
 
     /* dummy to satisfy legacy calls */
