@@ -5,23 +5,21 @@ import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.progressbar.ProgressBar;
 
+import com.vaadin.flow.spring.annotation.UIScope;
 import edu.byteme.data.entities.Order;
 import edu.byteme.data.entities.OrderStatus;
 import edu.byteme.services.OrderService;
 
+@UIScope
 public class OrderTimeLine extends Div {
-
     private Order order;
-    public OrderTimeLine(Order order){
-        this.order = order;
-        //setId("timeline-container");
-        draw();
 
+    public OrderTimeLine (Order order) {
+        this.order = order;
+        draw();
     }
 
-
-
-    private void draw(){
+    private void draw() {
         ProgressBar progressBar = new ProgressBar();
         progressBar.setMin(0);
         progressBar.setMax(1);
@@ -44,33 +42,22 @@ public class OrderTimeLine extends Div {
         HorizontalLayout bottomBar = new HorizontalLayout();
         bottomBar.addClassName("total");
         bottomBar.add(new Paragraph("Total price "), new Paragraph(OrderService.getTotalCostOfOrder(order)+"$"));
-        add(bottomBar,container);
-
+        add(bottomBar, container);
     }
 
-
-    private double mapEnumToPercent(OrderStatus status){
-
-        switch (status) {
-            case CONFIRMED:
-                return 0.15;
-            case IN_PROGRESS:
-                return 0.35;
-            case IN_DELIVERY:
-                return 0.75;
-            case DELIVERED:
-                return 1.0;
-            default:
-                return 0.0;
-        }
+    private double mapEnumToPercent(OrderStatus status) {
+        return switch (status) {
+            case CONFIRMED -> 0.15;
+            case IN_PROGRESS -> 0.35;
+            case IN_DELIVERY -> 0.75;
+            case DELIVERED -> 1.0;
+            default -> 0.0;
+        };
     }
-
 
     public void setValues(Order order){
         this.order = order;
         removeAll();
         draw();
-
     }
-    
 }

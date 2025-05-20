@@ -417,7 +417,6 @@ public class CartComponent extends HorizontalLayout {
         void onOrderSelected(Order order);
     }
 
-
     public void refreshOrders(){
         rightSide.remove(orderDetails);
         List<Order> orders = fetchUserOrders();

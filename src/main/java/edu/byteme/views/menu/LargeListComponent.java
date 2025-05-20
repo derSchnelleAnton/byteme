@@ -14,22 +14,9 @@ import edu.byteme.util.Util;
 
 import java.util.List;
 
-/**
- * Class LargeListComponent displays MenuItems in a vertical list view
- * @author  Patricia
- * @author Mark Böhme
- * @author Adrian tiberiu petre
- * @author anton Wörndle
- * @author Tinsae Ghilay
- */
-
 public class LargeListComponent extends VerticalLayout{
-
-    // list that holds menu items
-    private List<MenuItem> items;
-    // default button text
-    private String actionText;
-
+    private List<MenuItem> items; // list that holds menu items
+    private String actionText; // default button text
 
     /**
      * we can use empty constructor and set Menu items using the setter,
@@ -40,11 +27,7 @@ public class LargeListComponent extends VerticalLayout{
         setSizeFull();
         addClassName("menu-view");
         this.setPadding(true);
-        // we can add the page style here
-        // I am not bothering about it now.
     }
-
-
 
      /**
      * constructor
@@ -59,83 +42,56 @@ public class LargeListComponent extends VerticalLayout{
         setItems(items);
     }
 
-
     /**
-     * renders a list of menuItems in a vertical Layout
+     * Renders a list of menuItems in a vertical Layout
      */
-    private void displayItems(){
-        if(!items.isEmpty()){
-            for(MenuItem item : items){
+    private void displayItems() {
+        if (!items.isEmpty())
+            for (MenuItem item : items)
                 displayItem(item);
-            }
-        }
     }
 
     /**
-     * renders a single menuItem
-     * @param item menuItem to be displayed
+     * Renders a single menuItem
+     * @param item MenuItem to be displayed
      * @see MenuItem
      */
     void displayItem(MenuItem item) {
-        // How I think it will be aligned if we style them in css of course,
-        /*
-        *  |-----------==============================-----------------------------|
-        *  | /``````\  | Name                       |                             |
-        *  || IMAGE  | |                            |        price    ( button )  |
-        *  | \______/  | description                |                             |
-        *  |-----------==============================-----------------------------|
-         */
-        // with the above layout in mind.
-        // the MenuItem view
         HorizontalLayout itemLayout = new HorizontalLayout();
         itemLayout.addClassName("menu-item");
         itemLayout.setSpacing(true);
         itemLayout.setWidthFull();
         itemLayout.setDefaultVerticalComponentAlignment(Alignment.CENTER);
-        // we start with the icon
-        Image  menuProfile = renderImage(Util.getPathFromName(item.getName()));
-        itemLayout.add(menuProfile);
 
-        // vertical layout to hold Name and description as in the wireframe
-        VerticalLayout textLayout = new VerticalLayout();// we may need to use some flex properties here
-        // name
-        H2 name = new H2(item.getName());
-        // description
-        Paragraph description = new Paragraph(item.getDescription());
-        // and we add them to the layout
-        textLayout.add(name, description);
-        // and add name and description
+        itemLayout.add(renderImage(Util.getPathFromName(item.getName())));
+
+        VerticalLayout textLayout = new VerticalLayout();
+        textLayout.add(
+                new H2(item.getName()),
+                new Paragraph(item.getDescription())
+        );
         itemLayout.add(textLayout);
 
-        // price and button
-        Paragraph price = new Paragraph(item.getPrice()+"€");
-        itemLayout.add(price);
-        // button text
-        // optional to set it null to have no button at all
-        if(actionText != null){
+        itemLayout.add(new Paragraph(item.getPrice() + "€"));
 
+        if (actionText != null) {
             Button actionButton = new Button();
             actionButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-            // button click listener
             actionButton.addClickListener(e -> {
-                if(this.menuItemEvent != null){
+                if (this.menuItemEvent != null)
                     menuItemEvent.onClick(item);
-                }
             });
             itemLayout.add(actionButton);
             actionButton.setText(actionText);
         }
-        // and we add it to the parent.
         this.add(itemLayout);
     }
 
     /**
-     *
      * @return Image View
      * @param path String path to an image resource
      */
     private Image renderImage(String path) {
-
         Image image = new Image(path, "Menu item image");
         image.addClassName("menu-item-image");
         image.setWidth(120, Unit.PIXELS);
@@ -143,26 +99,29 @@ public class LargeListComponent extends VerticalLayout{
         return image;
     }
 
-
+    /**
+     * Loads items into member list, then empties component and fills with loaded items
+     * @param items To be displayed
+     */
     public void setItems(List<MenuItem> items) {
         this.items = items;
         invalidate();
     }
 
-    // clears and updates canvas. 
-    // for now used to make dynamic setting of UI values possible
-    // will research if there is a better way to do it, 
-    // as this does for the whole canvas
+    /**
+     * Clears and updates component entirely
+     */
     private void invalidate(){
-        // we may need to clear the canvas
         this.removeAll();
         displayItems();
     }
 
-    // set actionButton text
+    /**
+     * Sets text for button
+     * @param newActionText To be displayed in the blue button
+     */
     public void setActionText(String newActionText) {
         this.actionText = newActionText;
-        // update canvas
         invalidate();
     }
 
@@ -171,15 +130,15 @@ public class LargeListComponent extends VerticalLayout{
      * this will enable us to observe button click from any component
      * that adds this to its child components
      */
-    public interface MenuItemEvent{
+    public interface MenuItemEvent {
         void onClick(MenuItem item);
     }
 
-    // event handler that we set for this class
-    // and its setter
+    /**
+     * Event handler for action button
+     */
     MenuItemEvent menuItemEvent;
     public void setMenuItemEvent(MenuItemEvent menuItemEvent) {
         this.menuItemEvent = menuItemEvent;
     }
-
 }

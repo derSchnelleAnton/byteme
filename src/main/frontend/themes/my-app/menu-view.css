@@ -34,13 +34,3 @@
   gap: 1rem;
   align-items: center;
 }
-
-/* Moved to constructor of cart component as code
-/*.cart-component {*/
-/*  width: 320px;*/
-/*  min-width: 320px;*/
-/*  background: #fff;*/
-/*  border-left: 2px solid #ddd;*/
-/*  padding: 1rem;*/
-/*  box-sizing: border-box;*/
-/*}*/
