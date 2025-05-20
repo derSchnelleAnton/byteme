@@ -314,7 +314,7 @@ public class AdminDashboardView extends VerticalLayout {
             default -> all;
         };
 
-        double revenue = filtered.stream().mapToDouble(orderService::getTotalCostOfOrder).sum();
+        double revenue = filtered.stream().mapToDouble(OrderService::getTotalCostOfOrder).sum();
         rev.setText("Revenue (" + period + "): " + String.format("%.2f", revenue) + " €");
 
         Map<MenuItem, Long> counts = new HashMap<>();

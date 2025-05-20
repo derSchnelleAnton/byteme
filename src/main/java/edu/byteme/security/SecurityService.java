@@ -97,6 +97,7 @@ public class SecurityService {
         }
 
         // Optionale Adresse hinzufügen, falls vollständig
+        // Only phone should be optional and Address must be saved
         if (postalCode != null && street != null && houseNumber != null && phone != null) {
             Address address = new Address();
             address.setPostalCode(postalCode);
