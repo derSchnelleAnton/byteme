@@ -18,8 +18,6 @@ import edu.byteme.data.entities.MenuItem;
 import edu.byteme.data.entities.Order;
 import edu.byteme.data.repositories.ClientRepository;
 import edu.byteme.data.repositories.MenuRepository;
-import edu.byteme.data.repositories.UserRepository;
-import edu.byteme.events.OrderBroadcaster;
 import edu.byteme.services.OrderService;
 import edu.byteme.util.Util;
 import edu.byteme.views.MainLayout;
@@ -44,7 +42,7 @@ import java.util.Optional;
 public class Frame extends VerticalLayout {
     private final List<MenuItem> cartItems = new ArrayList<>(); // No reason why this is up here but don't want to break anything so it stays
     private final CartComponent cartPanel;
-    private final MenuListView orderView;
+    private final LargeListComponent orderView;
     private final ClientRepository clientRepository;
     private final OrderService orderService;
     //private final OrderService orderService;
@@ -89,16 +87,6 @@ public class Frame extends VerticalLayout {
         contentLayout.add(contentArea, cartPanel);
         contentLayout.expand(contentArea);
 
-
-        // try to register OrderBroadcaster
-        OrderBroadcaster.register(o->{
-            System.out.println("orders status updated");
-            cartPanel.refreshOrders();
-            if(currentPage != null && currentPage == Page.ORDERS) {
-                switchToOrders(o);
-            }
-        });
-
         /*
          * Below are cart callback functions that are required for the add to cart functionality
          * and proceed to order button
@@ -134,7 +122,7 @@ public class Frame extends VerticalLayout {
          * @TINSAE
          * DONE
          */
-        orderView = new MenuListView();
+        orderView = new LargeListComponent();
         switchToMenu();
         orderView.setMenuItemEvent(item -> {
             switch (currentPage){
@@ -166,7 +154,6 @@ public class Frame extends VerticalLayout {
     }
 
     private void switchToOrders(Order order) {
-        System.out.println("switchToOrders");
         orderView.setItems(order.getMenuItems());
         orderView.setActionText("More");
         currentPage = Page.ORDERS;
