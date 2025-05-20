@@ -36,7 +36,7 @@ INSERT INTO menu_item (name,description,price,discount,is_available,created_at,u
 -- ─────────────────────────────────────────────────────────────
 -- INITIAL 5 ORDERS (IDs 1-5) + LINKS
 -- ─────────────────────────────────────────────────────────────
-INSERT INTO orders (id,admin_id,client_id,status,order_date,delivery_date) VALUES
+/*INSERT INTO orders (id,admin_id,client_id,status,order_date,delivery_date) VALUES
 (1,1,5,'CANCELLED' ,NOW(),NOW()),
 (2,1,5,'PENDING'   ,NOW(),NOW()),
 (3,1,5,'CONFIRMED' ,NOW(),NOW()),
@@ -146,4 +146,4 @@ INSERT INTO order_menu (order_id,menu_item_id) VALUES
 (47,2),(47,4),(47,7),
 (48,5),(48,7),(48,1),(48,9),
 (49,8),(49,9),(49,3),
-(50,10),(50,3),(50,6),(50,2),(50,1);
+(50,10),(50,3),(50,6),(50,2),(50,1);*/

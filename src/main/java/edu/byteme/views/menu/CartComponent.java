@@ -44,6 +44,7 @@ public class CartComponent extends HorizontalLayout {
     // Autowired services
     private final SecurityService securityService;
     private final ClientRepository clientRepository;
+    private final VerticalLayout rightSide;
 
     @Autowired
     public CartComponent(SecurityService securityService, ClientRepository clientRepository) {
@@ -79,7 +80,7 @@ public class CartComponent extends HorizontalLayout {
         leftSide.add(sidebarLabel);
 
         // Right side contains menu and order items
-        VerticalLayout rightSide = new VerticalLayout();
+        rightSide = new VerticalLayout();
         rightSide.getStyle()
                 .set("width", "300px")
                 .set("background", "#fff")
@@ -414,5 +415,17 @@ public class CartComponent extends HorizontalLayout {
      */
     public interface OnOrderSelectedListener {
         void onOrderSelected(Order order);
+    }
+
+
+    public void refreshOrders(){
+        rightSide.remove(orderDetails);
+        List<Order> orders = fetchUserOrders();
+        // Only display orders if there are orders, otherwise only display basket
+        if (!orders.isEmpty()) {
+            rightSide.add(orderDetails);
+            displayOrders(orders);
+            orderDetails.setOpened(true);
+        }
     }
 }

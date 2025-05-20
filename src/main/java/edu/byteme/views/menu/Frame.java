@@ -13,9 +13,12 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
+import edu.byteme.data.entities.Client;
 import edu.byteme.data.entities.MenuItem;
 import edu.byteme.data.entities.Order;
+import edu.byteme.data.repositories.ClientRepository;
 import edu.byteme.data.repositories.MenuRepository;
+import edu.byteme.data.repositories.UserRepository;
 import edu.byteme.services.OrderService;
 import edu.byteme.util.Util;
 import edu.byteme.views.MainLayout;
@@ -25,11 +28,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.User;
 import org.vaadin.lineawesome.LineAwesomeIcon;
 
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @PageTitle("Menu")
 @Route(value = "", layout = MainLayout.class)
@@ -39,15 +44,20 @@ public class Frame extends VerticalLayout {
     private final List<MenuItem> cartItems = new ArrayList<>(); // No reason why this is up here but don't want to break anything so it stays
     private final CartComponent cartPanel;
     private final MenuListView orderView;
+    private final ClientRepository clientRepository;
+    private final OrderService orderService;
     //private final OrderService orderService;
     private Page currentPage;
     private final MenuRepository menuRepository;
     private final Div footer;
-    private Component fab;
+    private final Component fab;
 
 
     @Autowired
-    public Frame(MenuRepository menuRepository, CartComponent cartPanel, OrderService orderService) {
+    public Frame(MenuRepository menuRepository,
+                 CartComponent cartPanel,
+                 OrderService orderService,
+                 ClientRepository clientRepository) {
         this.cartPanel = cartPanel;
         this.menuRepository = menuRepository;
         footer = new Div();
@@ -140,6 +150,8 @@ public class Frame extends VerticalLayout {
         contentArea.add(footer);
         contentArea.expand(orderView);
         contentArea.setHorizontalComponentAlignment(Alignment.CENTER, footer);
+        this.clientRepository = clientRepository;
+        this.orderService = orderService;
     }
 
     private void switchToOrders(Order order) {
@@ -197,8 +209,16 @@ public class Frame extends VerticalLayout {
         });
         Button orderButton = new Button("Order");
         orderButton.addClickListener(event -> {
-            //orderService.placeOrder(cartItems,CURENT USER IS NEEDED HERE)
-            System.out.println("ORDER BUTTON PRESSED - FUNCTIONALITY MISSING");
+            switchToMenu();
+            // we get username from security context
+            User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            // we use UserRepository to get Client
+            Optional<Client> client = clientRepository.findByUserName(currentUser.getUsername());
+            // if client is available we place order in clients name
+            client.ifPresent(value -> orderService.placeOrder(cartItems, value));
+            cartItems.clear();
+            cartPanel.displayCart(cartItems);
+            cartPanel.refreshOrders();
         });
         buttonLayout.add(backButton, orderButton);
         return buttonLayout;
