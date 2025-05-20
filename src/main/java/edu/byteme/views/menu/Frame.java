@@ -18,7 +18,6 @@ import edu.byteme.data.repositories.ClientRepository;
 import edu.byteme.data.repositories.MenuRepository;
 import edu.byteme.services.OrderService;
 import edu.byteme.util.Util;
-import edu.byteme.security.SecurityService;
 import edu.byteme.views.MainLayout;
 import edu.byteme.views.orders.OrderTimeLine;
 import jakarta.annotation.security.PermitAll;
@@ -41,7 +40,6 @@ import java.util.Optional;
 public class Frame extends VerticalLayout {
     private final List<MenuItem> cartItems = new ArrayList<>(); // No reason why this is up here but don't want to break anything so it stays
     private final CartComponent cartPanel;
-    private final SecurityService securityService;
     private final ClientRepository clientRepository;
     private final OrderService orderService;
     private final LargeItemListComponent orderView;
@@ -52,16 +50,15 @@ public class Frame extends VerticalLayout {
 
 
     @Autowired
-    public Frame(MenuRepository menuRepository, CartComponent cartPanel, SecurityService securityService, ClientRepository clientRepository, OrderService orderService) {
+    public Frame(MenuRepository menuRepository, CartComponent cartPanel, ClientRepository clientRepository, OrderService orderService) {
         this.cartPanel = cartPanel;
-        this.securityService = securityService;
         this.clientRepository = clientRepository;
         this.menuRepository = menuRepository;
         this.orderService = orderService;
-        footer = new Div();
-        footer.addClassName("footer");
-        footer.setVisible(false);
-        fab = addHomeRouter();
+        this.footer = new Div();
+        this.footer.addClassName("footer");
+        this.footer.setVisible(false);
+        this.fab = addHomeRouter();
         add(fab);
 
         setSizeFull();
@@ -116,10 +113,6 @@ public class Frame extends VerticalLayout {
             cartPanel.displayCart(cartItems);
         });
 
-        /*
-         * Below is code for the actual content (left hand side) of the screen
-         * @TINSAE
-         */
         orderView = new LargeItemListComponent();
         switchToMenu();
         orderView.setMenuItemEvent(item -> {
@@ -138,12 +131,6 @@ public class Frame extends VerticalLayout {
         // but here we only need register as observers
         cartPanel.setOnOrderSelected(this::switchToOrders);
 
-
-
-
-        /*
-         * Below everything is put together
-         */
         contentArea.add(orderView);
         add(contentLayout);
         expand(contentLayout);
@@ -152,6 +139,23 @@ public class Frame extends VerticalLayout {
         contentArea.setHorizontalComponentAlignment(Alignment.CENTER, footer);
     }
 
+    /*
+     * The following enum as well as methods could be refactored to a strategy pattern because there are repeating steps
+     * Anton 2025/05/25
+     */
+
+    /**
+     *
+     * Enumeration of all pages the user can navigate to
+     */
+    enum Page{
+        MENU, ORDERS, CART
+    }
+
+    /**
+     * Switches to order view
+     * @param order Order that is to be displayed in order view
+     */
     private void switchToOrders(Order order) {
         orderView.setItems(order.getMenuItems());
         orderView.setActionText("More");
@@ -160,13 +164,15 @@ public class Frame extends VerticalLayout {
             footer.setVisible(true);
         }
         footer.removeAll();
-        OrderTimeLine timeline = new OrderTimeLine(order);
-        footer.add(timeline);
+        footer.add(new OrderTimeLine(order));
         fab.setVisible(currentPage == Page.ORDERS);
-
     }
 
-    private void switchToMenu(){
+    /**
+     *
+     * Switches to menu view
+     */
+    private void switchToMenu() {
         List<MenuItem> menuItems = menuRepository.findByIsAvailableTrue();
         orderView.setItems(menuItems);
         orderView.setActionText("Add to cart");
@@ -175,10 +181,13 @@ public class Frame extends VerticalLayout {
         footer.setWidthFull();
         footer.setVisible(false);
         fab.setVisible(currentPage == Page.ORDERS);
-
     }
 
-    private void switchToPlaceOrder(){
+    /**
+     *
+     * Switches to place-order view
+     */
+    private void switchToPlaceOrder() {
         orderView.setItems(cartItems);
         orderView.setActionText(null);
         currentPage = Page.CART;
@@ -188,10 +197,17 @@ public class Frame extends VerticalLayout {
         footer.removeAll();
         footer.add(createButtons());
         fab.setVisible(currentPage == Page.ORDERS);
-
-
     }
 
+    /**
+     *
+     * @return Boolean whether a user is currently logged in or not
+     */
+    private boolean isUserLoggedIn() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        return authentication != null && authentication.isAuthenticated()
+                && !(authentication instanceof AnonymousAuthenticationToken);
+    }
 
     private Component createButtons(){
         HorizontalLayout buttonLayout = new HorizontalLayout();
@@ -219,21 +235,6 @@ public class Frame extends VerticalLayout {
         buttonLayout.add(backButton, orderButton);
         return buttonLayout;
     }
-
-    /**
-     *
-     * @return Boolean whether a user is currently logged in or not
-     */
-    private boolean isUserLoggedIn() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        return authentication != null && authentication.isAuthenticated()
-                && !(authentication instanceof AnonymousAuthenticationToken);
-    }
-
-    enum Page{
-        MENU, ORDERS, CART
-    }
-
 
     // to show dialog
     private void openDialog(MenuItem item) {
