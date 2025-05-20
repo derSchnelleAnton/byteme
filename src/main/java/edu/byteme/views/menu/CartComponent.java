@@ -12,6 +12,7 @@ import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.router.Layout;
 import com.vaadin.flow.spring.annotation.UIScope;
 import edu.byteme.data.entities.Client;
 import edu.byteme.data.entities.MenuItem;
@@ -44,6 +45,7 @@ public class CartComponent extends HorizontalLayout {
     // Autowired services
     private final SecurityService securityService;
     private final ClientRepository clientRepository;
+    private final VerticalLayout rightSide;
 
     @Autowired
     public CartComponent(SecurityService securityService, ClientRepository clientRepository) {
@@ -79,7 +81,7 @@ public class CartComponent extends HorizontalLayout {
         leftSide.add(sidebarLabel);
 
         // Right side contains menu and order items
-        VerticalLayout rightSide = new VerticalLayout();
+        rightSide = new VerticalLayout();
         rightSide.getStyle()
                 .set("width", "300px")
                 .set("background", "#fff")
@@ -109,6 +111,18 @@ public class CartComponent extends HorizontalLayout {
         }
 
         add(leftSide, rightSide);
+    }
+
+    public void refreshOrders() {
+        List<Order> orders = fetchUserOrders();
+        rightSide.remove(orderDetails);
+
+        // Only display orders if there are orders, otherwise only display basket
+        if (!orders.isEmpty()) {
+            rightSide.add(orderDetails);
+            displayOrders(orders);
+            orderDetails.setOpened(true);
+        }
     }
 
     /**
@@ -340,7 +354,7 @@ public class CartComponent extends HorizontalLayout {
         VerticalLayout outerContainer = new VerticalLayout();
 
         // Order date
-        LocalDateTime dateTime = LocalDateTime.parse(String.valueOf(order.getOrderDate()));
+       LocalDateTime dateTime = LocalDateTime.parse(String.valueOf(order.getOrderDate()));
         String formatted = dateTime.format(DateTimeFormatter.ofPattern("dd MMM yyyy"));
         Paragraph orderDate = new Paragraph(formatted);
         orderDate.getStyle()
@@ -377,7 +391,7 @@ public class CartComponent extends HorizontalLayout {
         statusAndTotal.setAlignItems(FlexComponent.Alignment.CENTER);
 
         // Put together everything
-        outerContainer.add(orderDate, statusAndTotal);
+        outerContainer.add(orderDate,statusAndTotal);
         outerContainer.setPadding(false);
         outerContainer.setSpacing(false);
 

@@ -3,6 +3,7 @@
    ────────────────────────────────────────────────────────────── */
 package edu.byteme.services;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -111,6 +112,7 @@ public class OrderService {
         order.setStatus(OrderStatus.PENDING);
         order.setMenuItems(items);
         order.setClient(client);
+        order.setOrderDate(LocalDateTime.now());
         return  orderRepository.save(order);
 
     }
