@@ -16,7 +16,7 @@ import java.util.List;
 
 
 
-
+@Deprecated
 public class SideBar extends VerticalLayout{
     private List<Order> orders;
     private OnOrderSelectedListener onOrderSelectedListener;

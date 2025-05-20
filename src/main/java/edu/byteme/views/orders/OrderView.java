@@ -28,6 +28,7 @@ import java.util.Optional;
 @PageTitle("Order")
 @Route(value = "order", layout = MainLayout.class)
 @RolesAllowed("ADMIN")
+@Deprecated
 public class OrderView extends HorizontalLayout {
 
     private final OrderService orderService;

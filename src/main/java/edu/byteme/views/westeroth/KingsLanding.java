@@ -5,7 +5,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.Component;
 import edu.byteme.views.menu.CartComponent;
 import edu.byteme.views.menu.LargeListComponent;
-
+@Deprecated
 public class KingsLanding extends HorizontalLayout{
     private final CartComponent cartPanel;
 

@@ -9,7 +9,7 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.theme.lumo.LumoUtility.Margin;
 import org.vaadin.lineawesome.LineAwesomeIconUrl;
-
+@Deprecated
 @PageTitle("Empty")
 @Menu(order = 0, icon = LineAwesomeIconUrl.FILE)
 public class EmptyView extends VerticalLayout {

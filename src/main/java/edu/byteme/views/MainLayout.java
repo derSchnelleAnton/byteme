@@ -174,6 +174,7 @@ public class MainLayout extends AppLayout {
 
         List<MenuItemInfo> items = new ArrayList<>();
 
+        /*
         // Standardmenü für alle Benutzer
         items.add(new MenuItemInfo("Menu", LineAwesomeIcon.UTENSILS_SOLID.create(), Frame.class));
 
@@ -183,6 +184,7 @@ public class MainLayout extends AppLayout {
             items.add(new MenuItemInfo("Admin", LineAwesomeIcon.TACHOMETER_ALT_SOLID.create(), AdminDashboardView.class));
             items.add(new MenuItemInfo("Orders", LineAwesomeIcon.BOX_OPEN_SOLID.create(), OrderView.class));
         }
+         */
         return items.toArray(new MenuItemInfo[0]);
     }
 }

@@ -1,5 +1,6 @@
 package edu.byteme.security;
 
+
 import com.vaadin.flow.spring.security.VaadinWebSecurity;
 import edu.byteme.views.accountstuff.LoginView;
 import org.springframework.context.annotation.Bean;
@@ -12,23 +13,20 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.savedrequest.NullRequestCache;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig extends VaadinWebSecurity {
-
     private final CustomUserDetailsService customUserDetailsService;
 
     public SecurityConfig(CustomUserDetailsService customUserDetailsService) {
         this.customUserDetailsService = customUserDetailsService;
-
-
     }
 
-
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
+    @Deprecated
+    protected void configure_deprecated(HttpSecurity http) throws Exception {
         super.configure(http);
 
         http.csrf(csrf -> csrf

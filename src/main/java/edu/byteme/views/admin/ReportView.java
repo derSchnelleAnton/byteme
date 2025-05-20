@@ -1,5 +1,6 @@
 package edu.byteme.views.admin;
 
+@Deprecated
 public class ReportView {
 }
 
