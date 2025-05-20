@@ -2,20 +2,9 @@ package edu.byteme.views.westeroth;
 
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.Component;
-import com.vaadin.flow.router.PageTitle;
-import com.vaadin.flow.router.Route;
-import edu.byteme.data.entities.MenuItem;
-import edu.byteme.data.entities.Order;
-import edu.byteme.data.repositories.MenuRepository;
-import edu.byteme.services.OrderService;
-import edu.byteme.views.MainLayout;
 import edu.byteme.views.menu.CartComponent;
-import edu.byteme.views.menu.MenuListView;
-import jakarta.annotation.security.PermitAll;
-import org.springframework.beans.factory.annotation.Autowired;
+import edu.byteme.views.menu.LargeListComponent;
 
 public class KingsLanding extends HorizontalLayout{
     private final CartComponent cartPanel;
@@ -39,7 +28,7 @@ public class KingsLanding extends HorizontalLayout{
 
     //private Div cartPanel;
     private VerticalLayout frame;
-    private MenuListView listView;
+    private LargeListComponent listView;
     private HorizontalLayout footer;
 
 

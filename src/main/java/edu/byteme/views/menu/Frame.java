@@ -18,7 +18,6 @@ import edu.byteme.data.entities.MenuItem;
 import edu.byteme.data.entities.Order;
 import edu.byteme.data.repositories.ClientRepository;
 import edu.byteme.data.repositories.MenuRepository;
-import edu.byteme.data.repositories.UserRepository;
 import edu.byteme.services.OrderService;
 import edu.byteme.util.Util;
 import edu.byteme.views.MainLayout;
@@ -43,7 +42,7 @@ import java.util.Optional;
 public class Frame extends VerticalLayout {
     private final List<MenuItem> cartItems = new ArrayList<>(); // No reason why this is up here but don't want to break anything so it stays
     private final CartComponent cartPanel;
-    private final MenuListView orderView;
+    private final LargeListComponent orderView;
     private final ClientRepository clientRepository;
     private final OrderService orderService;
     //private final OrderService orderService;
@@ -123,7 +122,7 @@ public class Frame extends VerticalLayout {
          * @TINSAE
          * DONE
          */
-        orderView = new MenuListView();
+        orderView = new LargeListComponent();
         switchToMenu();
         orderView.setMenuItemEvent(item -> {
             switch (currentPage){
