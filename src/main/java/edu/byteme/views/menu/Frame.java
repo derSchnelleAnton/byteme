@@ -1,6 +1,13 @@
 package edu.byteme.views.menu;
 
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.dialog.Dialog;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Image;
+import com.vaadin.flow.component.html.Paragraph;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.PageTitle;
@@ -12,21 +19,17 @@ import edu.byteme.data.repositories.MenuRepository;
 import edu.byteme.services.OrderService;
 import edu.byteme.util.Util;
 import edu.byteme.security.SecurityService;
-import edu.byteme.services.OrderService;
 import edu.byteme.views.MainLayout;
 import edu.byteme.views.orders.OrderTimeLine;
 import jakarta.annotation.security.PermitAll;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.vaadin.lineawesome.LineAwesomeIcon;
-import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.format.DateTimeFormatter;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -42,21 +45,16 @@ public class Frame extends VerticalLayout {
     private final ClientRepository clientRepository;
     private final OrderService orderService;
     private final LargeItemListComponent orderView;
-    private final ClientRepository clientRepository;
     private Page currentPage;
     private final MenuRepository menuRepository;
     private final Div footer;
     private Component fab;
-    private final OrderService orderService;
 
 
     @Autowired
     public Frame(MenuRepository menuRepository, CartComponent cartPanel, SecurityService securityService, ClientRepository clientRepository, OrderService orderService) {
-    public Frame(MenuRepository menuRepository, CartComponent cartPanel, ClientRepository clientRepository, OrderService orderService) {
         this.cartPanel = cartPanel;
         this.securityService = securityService;
-        this.clientRepository = clientRepository;
-        this.orderService = orderService;
         this.clientRepository = clientRepository;
         this.menuRepository = menuRepository;
         this.orderService = orderService;
