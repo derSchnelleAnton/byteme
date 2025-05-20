@@ -29,6 +29,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.vaadin.lineawesome.LineAwesomeIcon;
+import edu.byteme.views.menu.MenuItemDialog;
 
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -131,7 +132,7 @@ public class Frame extends VerticalLayout {
                     cartPanel.displayCart(cartItems);
                     break;
                 }case ORDERS:{
-                    openDialog(item);
+                    new MenuItemDialog(item).show(this);
                 }
                 // place order doesnt have a button
             }
@@ -153,21 +154,32 @@ public class Frame extends VerticalLayout {
         this.orderService = orderService;
     }
 
+    /**
+     * Enum for all pages a non-admin user can possibly navigate to
+     */
+    enum Page {
+        MENU, ORDERS, CART
+    }
+
+    /**
+     * Switches to order view
+     * @param order to be displayed
+     */
     private void switchToOrders(Order order) {
         orderView.setItems(order.getMenuItems());
         orderView.setActionText("More");
         currentPage = Page.ORDERS;
-        if(!footer.isVisible()) {
+        if(!footer.isVisible())
             footer.setVisible(true);
-        }
         footer.removeAll();
-        OrderTimeLine timeline = new OrderTimeLine(order);
-        footer.add(timeline);
+        footer.add(new OrderTimeLine(order));
         fab.setVisible(currentPage == Page.ORDERS);
-
     }
 
-    private void switchToMenu(){
+    /**
+     * Switches to menu view
+     */
+    private void switchToMenu() {
         List<MenuItem> menuItems = menuRepository.findByIsAvailableTrue();
         orderView.setItems(menuItems);
         orderView.setActionText("Add to cart");
@@ -176,22 +188,32 @@ public class Frame extends VerticalLayout {
         footer.setWidthFull();
         footer.setVisible(false);
         fab.setVisible(currentPage == Page.ORDERS);
-
     }
 
-    private void switchToPlaceOrder(){
+    /**
+     * Switches to place-order view
+     */
+    private void switchToPlaceOrder() {
         orderView.setItems(cartItems);
         orderView.setActionText(null);
         currentPage = Page.CART;
-        if(!footer.isVisible()) {
+        if(!footer.isVisible())
             footer.setVisible(true);
-        }
         footer.removeAll();
         footer.add(createButtons());
         fab.setVisible(currentPage == Page.ORDERS);
-
-
     }
+
+    /**
+     *
+     * @return Boolean whether a user is currently logged in or not
+     */
+    private boolean isUserLoggedIn() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        return authentication != null && authentication.isAuthenticated()
+                && !(authentication instanceof AnonymousAuthenticationToken);
+    }
+
 
 
     private Component createButtons(){
@@ -223,48 +245,6 @@ public class Frame extends VerticalLayout {
         return buttonLayout;
     }
 
-    /**
-     *
-     * @return Boolean whether a user is currently logged in or not
-     */
-    private boolean isUserLoggedIn() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        return authentication != null && authentication.isAuthenticated()
-                && !(authentication instanceof AnonymousAuthenticationToken);
-    }
-
-    enum Page{
-        MENU, ORDERS, CART
-    }
-
-
-    // to show dialog
-    private void openDialog(MenuItem item) {
-        Dialog dialog = new Dialog();
-        dialog.setHeaderTitle(item.getName());
-
-        Paragraph desc      = new Paragraph("Description : " + item.getDescription());
-        Paragraph price     = new Paragraph("Price : " + item.getPrice());
-        Paragraph available = new Paragraph("Still available : " + (item.isAvailable() ? "Yes" : "No"));
-        Paragraph since     = new Paragraph("Since : "
-                + item.getCreatedAt().format(DateTimeFormatter.ofPattern("dd MMMM, yyyy")));
-
-        VerticalLayout dialogLayout = new VerticalLayout(desc, price, available, since);
-        dialogLayout.setPadding(false);
-        dialogLayout.setSpacing(false);
-        dialogLayout.setAlignItems(FlexComponent.Alignment.STRETCH);
-        dialogLayout.getStyle().set("width", "18rem").set("max-width", "100%");
-
-        HorizontalLayout body = new HorizontalLayout();
-        body.setPadding(false);
-        Image img = new Image(Util.getPathFromName(item.getName()), "Menu image");
-        body.add(img, dialogLayout);
-        dialog.add(body);
-
-        dialog.getFooter().add(new com.vaadin.flow.component.button.Button("Close", e -> dialog.close()));
-        add(dialog);
-        dialog.open();
-    }
 
     // return button for OrdersView
     private Component addHomeRouter() {
