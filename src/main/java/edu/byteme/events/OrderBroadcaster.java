@@ -16,7 +16,7 @@ public final class OrderBroadcaster {
 
     public static Registration register(Consumer<Order> listener) {
         listeners.add(listener);
-        return () -> listeners.remove(listener);
+        return () -> listeners.add(listener);
     }
 
     public static void broadcast(Order order) {

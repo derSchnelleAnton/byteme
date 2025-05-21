@@ -215,7 +215,7 @@ public class AdminDashboardView extends VerticalLayout {
         grid.addColumn(o -> o.getClient().getUserName()).setHeader("Client");
         grid.addComponentColumn(o -> statusBox(o, grid)).setHeader("Status").setAutoWidth(true);
         grid.addColumn(o -> o.getMenuItems().size()).setHeader("# Items").setAutoWidth(true);
-        grid.addColumn(o -> orderService.getTotalCostOfOrder(o)).setHeader("Total (€)").setAutoWidth(true);
+        grid.addColumn(OrderService::getTotalCostOfOrder).setHeader("Total (€)").setAutoWidth(true);
         grid.setItemDetailsRenderer(new ComponentRenderer<>(this::detailsRenderer));
         grid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
         grid.setSizeFull();
@@ -234,6 +234,9 @@ public class AdminDashboardView extends VerticalLayout {
         cb.addValueChangeListener(ev -> {
             if (!ev.isFromClient() || ev.getValue() == null || ev.getValue() == o.getStatus()) return;
             Order updated = orderService.updateStatus(o.getId(), ev.getValue());
+
+            // need to broadcast here that order is updated
+            OrderBroadcaster.broadcast(updated);
             o.setStatus(updated.getStatus());
             UI.getCurrent().access(() -> {
                 grid.getDataProvider().refreshItem(o);
@@ -246,7 +249,7 @@ public class AdminDashboardView extends VerticalLayout {
     private VerticalLayout detailsRenderer(Order o) {
         VerticalLayout v = new VerticalLayout();
         o.getMenuItems().forEach(mi -> v.add(new Paragraph(mi.getName() + " — " + mi.getPrice() + "€")));
-        v.add(new Paragraph("Total: " + orderService.getTotalCostOfOrder(o) + "€"));
+        v.add(new Paragraph("Total: " + OrderService.getTotalCostOfOrder(o) + "€"));
         v.add(new Paragraph("Status: " + o.getStatus()));
         v.add(new Paragraph("Ordered: " + o.getOrderDate().toLocalDate()));
         return v;

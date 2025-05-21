@@ -75,7 +75,7 @@ public class OrderView extends HorizontalLayout {
         Div side = new Div();
         side.addClassName("cart-panel");
 
-        SideBar bar = new SideBar(orderService);
+        SideBar bar = new SideBar();
         bar.setOnOrderSelectedListener(selected -> {
             /* always fetch current state from DB to avoid stale status */
             Optional<Order> fresh = orderService.getOrderById(selected.getId());
