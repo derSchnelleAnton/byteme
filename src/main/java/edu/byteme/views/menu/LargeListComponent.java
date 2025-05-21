@@ -11,6 +11,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import edu.byteme.data.entities.MenuItem;
 import edu.byteme.data.entities.Order;
 import edu.byteme.util.Util;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 
