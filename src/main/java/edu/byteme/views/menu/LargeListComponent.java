@@ -4,6 +4,7 @@ import com.vaadin.flow.component.Unit;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.html.H2;
+import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -13,7 +14,9 @@ import edu.byteme.data.entities.Order;
 import edu.byteme.util.Util;
 import org.springframework.stereotype.Component;
 
+import java.text.NumberFormat;
 import java.util.List;
+import java.util.Locale;
 
 public class LargeListComponent extends VerticalLayout{
     private List<MenuItem> items; // list that holds menu items
@@ -26,7 +29,6 @@ public class LargeListComponent extends VerticalLayout{
      **/
     public LargeListComponent(){
         setSizeFull();
-        addClassName("menu-view");
         this.setPadding(true);
     }
 
@@ -68,12 +70,17 @@ public class LargeListComponent extends VerticalLayout{
 
         VerticalLayout textLayout = new VerticalLayout();
         textLayout.add(
-                new H2(item.getName()),
+                new H3(item.getName()),
                 new Paragraph(item.getDescription())
         );
         itemLayout.add(textLayout);
 
-        itemLayout.add(new Paragraph(item.getPrice() + "€"));
+        NumberFormat currencyFormat = NumberFormat.getNumberInstance(Locale.US);
+        currencyFormat.setMinimumFractionDigits(2);
+        currencyFormat.setMaximumFractionDigits(2);
+        String formattedPrice = currencyFormat.format(item.getPrice());
+
+        itemLayout.add(new Paragraph(formattedPrice + "\u00A0$"));
 
         if (actionText != null) {
             Button actionButton = new Button();
@@ -95,8 +102,8 @@ public class LargeListComponent extends VerticalLayout{
     private Image renderImage(String path) {
         Image image = new Image(path, "Menu item image");
         image.addClassName("menu-item-image");
-        image.setWidth(120, Unit.PIXELS);
-        image.setHeight(120, Unit.PIXELS);
+        image.setWidth(100, Unit.PIXELS);
+        image.setHeight(100, Unit.PIXELS);
         return image;
     }
 

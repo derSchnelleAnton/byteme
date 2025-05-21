@@ -3,8 +3,10 @@
 .menu-item {
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
     border-radius: 5px;
-    height: 120px;
+    height: 100px;
     padding-right: 1em;
+    max-width: 1000px;
+    margin: 0 auto;
 }
 
 .menu-item-image {
@@ -17,12 +19,6 @@
     width: 200px;
     height: 200px;
     border-radius: 5%;
-}
-
-.footer {
-    background-color: white;
-    border-radius: 4px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
 }
 
 #timeline-container {
@@ -46,6 +42,8 @@
     max-width: 600px;
     height: 60px;
     margin: 0 auto;
+    margin-top: 40px;
+    margin-bottom: 10px;
 }
 
 vaadin-progress-bar {
@@ -89,27 +87,4 @@ vaadin-progress-bar {
     margin: 16px;
     font-weight: bold;
     justify-content: space-between;
-}
-
-.fab {
-    position: fixed;
-    bottom: 24px;
-    right: 24px;
-    height: 56px;
-    border-radius: 28px;
-    background-color: #6200ea;
-    color: white;
-    font-size: 24px;
-    border: none;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-    cursor: pointer;
-    z-index: 1000;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: box-shadow 0.2s ease;
-}
-
-.fab:hover {
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
 }

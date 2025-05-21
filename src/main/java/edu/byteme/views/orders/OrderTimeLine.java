@@ -1,9 +1,12 @@
 package edu.byteme.views.orders;
 
+import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.progressbar.ProgressBar;
+import com.vaadin.flow.component.html.H2;
 
 import com.vaadin.flow.spring.annotation.UIScope;
 import edu.byteme.data.entities.Order;
@@ -39,10 +42,15 @@ public class OrderTimeLine extends Div {
         circle3.addClassName("progress-marker");
 
         container.add(progressBar, circle1, circle2, circle3);
-        HorizontalLayout bottomBar = new HorizontalLayout();
-        bottomBar.addClassName("total");
-        bottomBar.add(new Paragraph("Total price "), new Paragraph(OrderService.getTotalCostOfOrder(order)+"$"));
-        add(bottomBar, container);
+
+        H2 exclamationText = new H2(getStatusText(order.getStatus()));
+        exclamationText.getStyle()
+                .set("text-align", "center")
+                .set("width", "100%")
+                .set("margin-bottom", "40px")
+                .set("color", "#006AF5");
+
+        add(container, exclamationText);
     }
 
     private double mapEnumToPercent(OrderStatus status) {
@@ -52,6 +60,16 @@ public class OrderTimeLine extends Div {
             case IN_DELIVERY -> 0.75;
             case DELIVERED -> 1.0;
             default -> 0.0;
+        };
+    }
+
+    private String getStatusText(OrderStatus status) {
+        return switch (status) {
+            case CONFIRMED -> "Your order has been confirmed";
+            case IN_PROGRESS -> "Your order is being prepared";
+            case IN_DELIVERY -> "We are on our way";
+            case DELIVERED -> "Enjoy!";
+            default -> "We received your order";
         };
     }
 
