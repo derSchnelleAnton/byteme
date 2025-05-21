@@ -327,7 +327,6 @@ public class CartComponent extends HorizontalLayout {
         orderDetails.removeAll();
         for (Order order : orders)
             orderDetails.add(getOrderCard(order));
-
     }
 
     /**

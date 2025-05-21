@@ -11,7 +11,9 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import edu.byteme.data.entities.MenuItem;
 import edu.byteme.util.Util;
 
+import java.text.NumberFormat;
 import java.time.format.DateTimeFormatter;
+import java.util.Locale;
 
 public class MenuItemDialog extends Dialog {
 
@@ -22,12 +24,17 @@ public class MenuItemDialog extends Dialog {
         // Header
         setHeaderTitle(item.getName());
 
+        NumberFormat currencyFormat = NumberFormat.getNumberInstance(Locale.US);
+        currencyFormat.setMinimumFractionDigits(2);
+        currencyFormat.setMaximumFractionDigits(2);
+        String formattedPrice = currencyFormat.format(item.getPrice());
+
         // Description, Price, Availability, CreatedAt
-        Paragraph desc = new Paragraph("Description: " + item.getDescription());
-        Paragraph price = new Paragraph("Price: " + item.getPrice());
-        Paragraph available = new Paragraph("Still available: " +
+        Paragraph desc = new Paragraph("Description:\n" + item.getDescription());
+        Paragraph price = new Paragraph("Price:\n" + formattedPrice + "\u00A0$");
+        Paragraph available = new Paragraph("Still available:\n" +
                 (item.isAvailable() ? "Yes" : "No"));
-        Paragraph since = new Paragraph("Since: " +
+        Paragraph since = new Paragraph("Since:\n" +
                 item.getCreatedAt().format(DATE_FORMATTER));
 
         // Layout für Text

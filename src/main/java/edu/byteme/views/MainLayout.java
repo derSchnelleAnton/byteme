@@ -87,7 +87,7 @@ public class MainLayout extends AppLayout {
         // Linke Seite des Headers (kann für ein Logo oder Navigation verwendet werden)
         Div title = new Div();
         title.setText("ByteMe" + " - Ordering System");
-        title.addClassName("app-title");
+        title.getStyle().set("color", "#006AF5").set("font-weight", "bold").set("font-size", "large");
 
         // Rechte Seite des Headers — Benutzerinfo und Login/Logout-Button
         HorizontalLayout userInfoLayout = new HorizontalLayout();
