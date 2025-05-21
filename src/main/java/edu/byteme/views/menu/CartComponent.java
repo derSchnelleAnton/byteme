@@ -67,13 +67,11 @@ public class CartComponent extends HorizontalLayout {
         leftSide.setAlignItems(FlexComponent.Alignment.CENTER);
         //leftSide.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
 
-        /*
-        Image iconImage = new Image("images/right.png", "images/right.png");
-        iconImage.setWidth("25px");
 
-        leftSide.add(iconImage);
-        Cant use picture because it would not load due to security reasons
-        */
+        //Image iconImage = new Image("images/right.png", "images/right.png");
+        //iconImage.setWidth("25px");
+
+        //leftSide.add(iconImage);
 
         Paragraph sidebarLabel = new Paragraph("🛒");
 
@@ -384,12 +382,6 @@ public class CartComponent extends HorizontalLayout {
 
         // Click listener for navigation to order
         outerContainer.addClickListener(e -> {
-            System.out.println("ORDER CARD PRESSED - FUNCTIONALITY MISSING");
-            /*
-             * @ANTON
-             * We only need to inform observers here if any
-             * and in Frame we register an observer and attach it to this component
-             */
             if(onOrderSelected != null){
                 onOrderSelected.onOrderSelected(order);
             }
