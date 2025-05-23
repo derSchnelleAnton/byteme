@@ -332,21 +332,12 @@ public class Frame extends VerticalLayout {
     private void handleOrderUpdate(Order updatedOrder) {
         // Only process updates for the order that's currently being viewed
         if (currentOrder != null && updatedOrder.getId().equals(currentOrder.getId())) {
-            UI ui = UI.getCurrent();
-            if (ui == null) return;
+            // Update our stored order reference immediately
+            currentOrder = updatedOrder;
             
-            ui.access(() -> {
-                System.out.println("DEBUG: Frame received order update for ID: " + updatedOrder.getId() + 
-                                  ", status: " + updatedOrder.getStatus());
-                
-                // Update our stored order reference
-                currentOrder = updatedOrder;
-                
-                // Update the timeline with the latest order data
-                if (currentOrderTimeLine != null) {
-                    currentOrderTimeLine.setValues(updatedOrder);
-                }
-            });
+            // Let the timeline component handle its own update
+            // It will automatically update when it receives the broadcast
+            // No need to manually refresh the component here
         }
     }
     
