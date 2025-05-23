@@ -1,33 +1,41 @@
 package edu.byteme.views.menu;
 
-import com.vaadin.flow.component.ComponentEventListener;
+import java.text.NumberFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.stereotype.Component;
+
+import com.vaadin.flow.component.DetachEvent;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.details.Details;
 import com.vaadin.flow.component.html.Div;
-import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.shared.Registration;
 import com.vaadin.flow.spring.annotation.UIScope;
+
 import edu.byteme.data.entities.Client;
 import edu.byteme.data.entities.MenuItem;
 import edu.byteme.data.entities.Order;
 import edu.byteme.data.repositories.ClientRepository;
+import edu.byteme.events.OrderBroadcaster;
 import edu.byteme.security.SecurityService;
 import edu.byteme.services.OrderService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.stereotype.Component;
-
-import java.text.NumberFormat;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.*;
-import java.util.function.Consumer; // For callback function
 
 @UIScope
 @Component
@@ -45,6 +53,12 @@ public class CartComponent extends HorizontalLayout {
     private final SecurityService securityService;
     private final ClientRepository clientRepository;
     private final VerticalLayout rightSide;
+
+    // Order update subscription
+    private Registration orderUpdateRegistration;
+    
+    // Map to track orders by ID for easy lookup
+    private final Map<Integer, Order> ordersById = new ConcurrentHashMap<>();
 
     @Autowired
     public CartComponent(SecurityService securityService, ClientRepository clientRepository) {
@@ -327,6 +341,9 @@ public class CartComponent extends HorizontalLayout {
         orderDetails.removeAll();
         for (Order order : orders)
             orderDetails.add(getOrderCard(order));
+        
+        // Store orders in the tracking map for later updates
+        orders.forEach(order -> ordersById.put(order.getId(), order));
     }
 
     /**
@@ -417,5 +434,58 @@ public class CartComponent extends HorizontalLayout {
             displayOrders(orders);
             orderDetails.setOpened(true);
         }
+    }
+
+    @Override
+    protected void onAttach(com.vaadin.flow.component.AttachEvent attachEvent) {
+        super.onAttach(attachEvent);
+        // Register to receive order updates
+        orderUpdateRegistration = OrderBroadcaster.register(this::handleOrderUpdate);
+    }
+
+    @Override
+    protected void onDetach(DetachEvent detachEvent) {
+        super.onDetach(detachEvent);
+        // Clean up subscription when component is detached
+        if (orderUpdateRegistration != null) {
+            orderUpdateRegistration.remove();
+            orderUpdateRegistration = null;
+        }
+    }
+
+    /**
+     * Handles order updates received from the OrderBroadcaster
+     * @param updatedOrder The order that was updated
+     */
+    private void handleOrderUpdate(Order updatedOrder) {
+        // Make sure we're in the UI thread
+        UI ui = UI.getCurrent();
+        if (ui == null) return;
+        
+        ui.access(() -> {
+            System.out.println("DEBUG: CartComponent received order update for ID: " + updatedOrder.getId() + ", status: " + updatedOrder.getStatus());
+            
+            // Update the order in our tracking map
+            ordersById.put(updatedOrder.getId(), updatedOrder);
+            
+            // Find the existing order card component and replace it with an updated one
+            updateOrderCard(updatedOrder);
+        });
+    }
+    
+    /**
+     * Updates a specific order card in the UI
+     * @param updatedOrder The updated order to display
+     */
+    private void updateOrderCard(Order updatedOrder) {
+        // The Vaadin Details component doesn't have a replace method, so we need to rebuild the component
+        // First, update our order in the tracking map
+        ordersById.put(updatedOrder.getId(), updatedOrder);
+        
+        // Simply refresh the entire orders section with the updated data
+        // This is simpler and more reliable than trying to update individual components
+        System.out.println("DEBUG: Refreshing orders after status update for order ID: " + updatedOrder.getId() + 
+                           " to status: " + updatedOrder.getStatus());
+        refreshOrders();
     }
 }

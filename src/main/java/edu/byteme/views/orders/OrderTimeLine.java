@@ -1,25 +1,59 @@
 package edu.byteme.views.orders;
 
-import com.vaadin.flow.component.dependency.CssImport;
+import com.vaadin.flow.component.DetachEvent;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H2;
-import com.vaadin.flow.component.html.Paragraph;
-import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.progressbar.ProgressBar;
-import com.vaadin.flow.component.html.H2;
-
+import com.vaadin.flow.shared.Registration;
 import com.vaadin.flow.spring.annotation.UIScope;
+
 import edu.byteme.data.entities.Order;
 import edu.byteme.data.entities.OrderStatus;
-import edu.byteme.services.OrderService;
+import edu.byteme.events.OrderBroadcaster;
 
 @UIScope
 public class OrderTimeLine extends Div {
     private Order order;
+    private Registration orderUpdateRegistration;
 
     public OrderTimeLine (Order order) {
         this.order = order;
         draw();
+
+        // Register for order updates
+        orderUpdateRegistration = OrderBroadcaster.register(this::handleOrderUpdate);
+    }
+
+    @Override
+    protected void onDetach(DetachEvent detachEvent) {
+        super.onDetach(detachEvent);
+        // Clean up subscription when component is detached
+        if (orderUpdateRegistration != null) {
+            orderUpdateRegistration.remove();
+            orderUpdateRegistration = null;
+        }
+    }
+
+    /**
+     * Handle order updates from the OrderBroadcaster
+     */
+    private void handleOrderUpdate(Order updatedOrder) {
+        if (updatedOrder.getId().equals(order.getId())) {
+            // Update our local order reference
+            UI ui = UI.getCurrent();
+            if (ui == null) return;
+            
+            ui.access(() -> {
+                System.out.println("DEBUG: OrderTimeLine: Updating order #" + updatedOrder.getId() + 
+                                  " status to " + updatedOrder.getStatus());
+                
+                // Store the updated order and redraw the component
+                this.order = updatedOrder;
+                removeAll();
+                draw();
+            });
+        }
     }
 
     private void draw() {

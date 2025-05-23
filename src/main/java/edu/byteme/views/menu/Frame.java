@@ -1,6 +1,18 @@
 package edu.byteme.views.menu;
 
-import com.vaadin.flow.component.Component;
+import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Optional;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.User;
+
+import com.vaadin.flow.component.DetachEvent;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.Div;
@@ -13,27 +25,18 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
+import com.vaadin.flow.shared.Registration;
+
 import edu.byteme.data.entities.Client;
 import edu.byteme.data.entities.MenuItem;
 import edu.byteme.data.entities.Order;
 import edu.byteme.data.repositories.ClientRepository;
 import edu.byteme.data.repositories.MenuRepository;
+import edu.byteme.events.OrderBroadcaster;
 import edu.byteme.services.OrderService;
 import edu.byteme.views.MainLayout;
 import edu.byteme.views.orders.OrderTimeLine;
 import jakarta.annotation.security.PermitAll;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.AnonymousAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.User;
-import org.vaadin.lineawesome.LineAwesomeIcon;
-
-import java.text.NumberFormat;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Optional;
 
 @PageTitle("Menu")
 @Route(value = "", layout = MainLayout.class)
@@ -48,6 +51,11 @@ public class Frame extends VerticalLayout {
     private Page currentPage;
     private final MenuRepository menuRepository;
     private final VerticalLayout footer;
+    
+    // Add fields to track the current order and timeline
+    private Order currentOrder;
+    private OrderTimeLine currentOrderTimeLine;
+    private Registration orderUpdateRegistration;
 
     @Autowired
     public Frame(
@@ -155,6 +163,15 @@ public class Frame extends VerticalLayout {
      * @param order to be displayed
      */
     private void switchToOrders(Order order) {
+        // Clear any existing order update registration
+        if (orderUpdateRegistration != null) {
+            orderUpdateRegistration.remove();
+            orderUpdateRegistration = null;
+        }
+        
+        // Store a reference to the current order
+        this.currentOrder = order;
+        
         content.setItems(order.getMenuItems());
         content.setActionText("More");
         currentPage = Page.ORDERS;
@@ -163,11 +180,19 @@ public class Frame extends VerticalLayout {
         footer.removeAll();
         cartPanel.setVisible(false);
         footer.add(getFooterButtons(Page.MENU));
-        footer.add(new OrderTimeLine(order));
-
+        
+        // Create and store a reference to the order timeline
+        this.currentOrderTimeLine = new OrderTimeLine(order);
+        footer.add(this.currentOrderTimeLine);
+        
+        // Register for order updates
+        orderUpdateRegistration = OrderBroadcaster.register(this::handleOrderUpdate);
+        
+        // Calculate total price based on the ORDER's menu items, not cart items
         double totalPriceValue = 0.0;
-        for (MenuItem item : cartItems)
+        for (MenuItem item : order.getMenuItems()) {
             totalPriceValue += item.getPrice();
+        }
 
         NumberFormat currencyFormat = NumberFormat.getNumberInstance(Locale.US);
         currencyFormat.setMinimumFractionDigits(2);
@@ -177,7 +202,7 @@ public class Frame extends VerticalLayout {
         // Layout für Total
         HorizontalLayout totalPrice = new HorizontalLayout();
         totalPrice.setWidthFull();
-        totalPrice.setJustifyContentMode(JustifyContentMode.END); // wichtig!
+        totalPrice.setJustifyContentMode(JustifyContentMode.END);
         totalPrice.setAlignItems(Alignment.CENTER);
 
         Paragraph totalText = new Paragraph("Total: " + formattedPrice + "\u00A0$");
@@ -298,5 +323,40 @@ public class Frame extends VerticalLayout {
         buttonLayout.expand(spacer);
 
         return buttonLayout;
+    }
+
+    /**
+     * Handle order updates received from the broadcaster
+     * @param updatedOrder The updated order
+     */
+    private void handleOrderUpdate(Order updatedOrder) {
+        // Only process updates for the order that's currently being viewed
+        if (currentOrder != null && updatedOrder.getId().equals(currentOrder.getId())) {
+            UI ui = UI.getCurrent();
+            if (ui == null) return;
+            
+            ui.access(() -> {
+                System.out.println("DEBUG: Frame received order update for ID: " + updatedOrder.getId() + 
+                                  ", status: " + updatedOrder.getStatus());
+                
+                // Update our stored order reference
+                currentOrder = updatedOrder;
+                
+                // Update the timeline with the latest order data
+                if (currentOrderTimeLine != null) {
+                    currentOrderTimeLine.setValues(updatedOrder);
+                }
+            });
+        }
+    }
+    
+    @Override
+    protected void onDetach(DetachEvent detachEvent) {
+        super.onDetach(detachEvent);
+        // Clean up subscription to prevent memory leaks
+        if (orderUpdateRegistration != null) {
+            orderUpdateRegistration.remove();
+            orderUpdateRegistration = null;
+        }
     }
 }

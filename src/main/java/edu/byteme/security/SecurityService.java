@@ -1,13 +1,5 @@
 package edu.byteme.security;
 
-import com.vaadin.flow.component.UI;
-import com.vaadin.flow.server.VaadinServletRequest;
-import com.vaadin.flow.server.VaadinSession;
-import edu.byteme.data.entities.Address;
-import edu.byteme.data.entities.Client;
-import edu.byteme.data.repositories.AddressRepository;
-import edu.byteme.data.repositories.ClientRepository;
-import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -19,6 +11,16 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.stereotype.Component;
+
+import com.vaadin.flow.component.UI;
+import com.vaadin.flow.server.VaadinServletRequest;
+import com.vaadin.flow.server.VaadinSession;
+
+import edu.byteme.data.entities.Address;
+import edu.byteme.data.entities.Client;
+import edu.byteme.data.repositories.AddressRepository;
+import edu.byteme.data.repositories.ClientRepository;
+import jakarta.annotation.PostConstruct;
 
 @Component
 public class SecurityService {
@@ -123,26 +125,43 @@ public class SecurityService {
 
     private void autoLogin(String username, String password) {
         try {
-            // Authentifiziere den Benutzer
+            System.out.println("DEBUG: autoLogin called for username: " + username);
+            
+            // Authenticate the user
             UsernamePasswordAuthenticationToken authToken =
                     new UsernamePasswordAuthenticationToken(username, password);
             Authentication authentication = authenticationManager.authenticate(authToken);
+            System.out.println("DEBUG: Authentication successful for: " + username);
 
-            // Setze die Authentifizierung im SecurityContext
+            // Set the authentication in SecurityContext
             SecurityContext securityContext = SecurityContextHolder.getContext();
             securityContext.setAuthentication(authentication);
+            System.out.println("DEBUG: Authentication set in SecurityContext: " + authentication.isAuthenticated());
 
-            // Synchronisieren des SecurityContext mit Vaadin HTTP-Session
+            // Synchronize the SecurityContext with the Vaadin HTTP session
             VaadinSession.getCurrent().access(() -> {
                 VaadinSession.getCurrent().getSession().setAttribute(
                         HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY,
                         securityContext
                 );
+                System.out.println("DEBUG: SecurityContext synchronized with Vaadin session");
             });
 
-                 UI.getCurrent().getPage().setLocation("/");
+            // Role-based redirect - check if user is ADMIN
+            boolean isAdmin = authentication.getAuthorities().stream()
+                    .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+            
+            if (isAdmin) {
+                System.out.println("DEBUG: Auto-login detected ADMIN role - navigating to admin dashboard");
+                UI.getCurrent().navigate("admin");
+            } else {
+                System.out.println("DEBUG: Auto-login detected regular user - navigating to menu");
+                UI.getCurrent().navigate("");
+            }
+            
         } catch (Exception e) {
-                    System.out.println("Error during auto-login: " + e.getMessage());
+            System.out.println("DEBUG: Error during auto-login: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 }
