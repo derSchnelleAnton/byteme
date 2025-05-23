@@ -303,7 +303,18 @@ public class AdminDashboardView extends VerticalLayout {
     private record BestRow(String name, long qty, double income) {}
 
     private void refreshReports(String period, Paragraph rev, Grid<BestRow> grid) {
-        List<Order> all = orderService.getAllOrders();
+        // Get all regular orders
+        List<Order> regularOrders = orderService.getAllOrders();
+        
+        // Get orders that are mock data (IDs 1-50)
+        List<Order> mockOrders = orderService.getAllOrders().stream()
+            .filter(order -> order.getId() <= 50)
+            .toList();
+        
+        // For Reports tab only, include both regular and mock orders
+        List<Order> all = new ArrayList<>(regularOrders);
+        all.addAll(mockOrders);
+        
         LocalDateTime now = LocalDateTime.now();
 
         List<Order> filtered = switch (period) {

@@ -1,5 +1,7 @@
 package edu.byteme.views.orders;
 
+import java.util.logging.Logger;
+
 import com.vaadin.flow.component.DetachEvent;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.html.Div;
@@ -11,8 +13,6 @@ import com.vaadin.flow.spring.annotation.UIScope;
 import edu.byteme.data.entities.Order;
 import edu.byteme.data.entities.OrderStatus;
 import edu.byteme.events.OrderBroadcaster;
-
-import java.util.logging.Logger;
 
 /**
  * A component that displays the timeline for an order's status progression.
