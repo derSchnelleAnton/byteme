@@ -56,6 +56,12 @@
             <groupId>com.vaadin</groupId>
             <artifactId>vaadin-spring-boot-starter</artifactId>
         </dependency>
+        <!-- ApexCharts dependency for data visualization -->
+        <dependency>
+            <groupId>com.github.appreciated</groupId>
+            <artifactId>apexcharts</artifactId>
+            <version>23.0.0</version>
+        </dependency>
         <dependency>
             <groupId>org.parttio</groupId>
             <artifactId>line-awesome</artifactId>

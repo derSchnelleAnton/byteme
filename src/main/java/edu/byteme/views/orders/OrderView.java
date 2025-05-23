@@ -64,7 +64,7 @@ public class OrderView extends HorizontalLayout {
         ui.access(() -> {
             order = updated;
             goodiesList.setItems(order.getMenuItems());
-            timeLine.setValues(order);
+            timeLine.setOrder(order);
         });
     }
 
@@ -81,7 +81,7 @@ public class OrderView extends HorizontalLayout {
             order = fresh.orElse(selected);
 
             goodiesList.setItems(order.getMenuItems());
-            timeLine.setValues(order);
+            timeLine.setOrder(order);
         });
         side.add(bar);
         add(side);
