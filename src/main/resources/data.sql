@@ -12,7 +12,8 @@ INSERT INTO address (postal_code, street, house_number, phone, created_at, updat
 -- USER SEED
 -- ─────────────────────────────────────────────────────────────
 INSERT INTO users (user_name,email,password,first_name,last_name,role,created_at,updated_at) VALUES
-('adrian'  ,'adrian@mci.at'  ,'pass123','Adrian'  ,'Petre'   ,'manager',NOW(),NOW()),
+('admin'  ,'adri@mci.at'  ,'$2a$12$P12N6KrvhcDCASyQXg78Zu9iIJzpBnpAZ7NxX4fyLr44rK0xA5l4u','Adrian'  ,'Petre'   ,'ADMIN',NOW(),NOW()),
+('adrian'  ,'adrian@mci.at'  ,'$2a$12$P12N6KrvhcDCASyQXg78Zu9iIJzpBnpAZ7NxX4fyLr44rK0xA5l4u','Adrian'  ,'Petre'   ,'manager',NOW(),NOW()),
 ('anton'   ,'anton@mci.at'   ,'pass123','Anton'   ,'Woerndle','client' ,NOW(),NOW()),
 ('marc'    ,'marc@mci.at'    ,'pass123','Marc'    ,'Boehme'  ,'client' ,NOW(),NOW()),
 ('patricia','patricia@mci.at','pass123','Patricia','Fueruter','client' ,NOW(),NOW()),
