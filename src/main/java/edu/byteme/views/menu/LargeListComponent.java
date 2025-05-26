@@ -3,7 +3,6 @@ package edu.byteme.views.menu;
 import com.vaadin.flow.component.Unit;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
-import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Paragraph;
@@ -12,7 +11,6 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import edu.byteme.data.entities.MenuItem;
 import edu.byteme.data.entities.Order;
 import edu.byteme.util.Util;
-import org.springframework.stereotype.Component;
 
 import java.text.NumberFormat;
 import java.util.List;

@@ -1,17 +1,11 @@
 package edu.byteme.views.orders;
 
-import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H2;
-import com.vaadin.flow.component.html.Paragraph;
-import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.progressbar.ProgressBar;
-import com.vaadin.flow.component.html.H2;
-
 import com.vaadin.flow.spring.annotation.UIScope;
 import edu.byteme.data.entities.Order;
 import edu.byteme.data.entities.OrderStatus;
-import edu.byteme.services.OrderService;
 
 @UIScope
 public class OrderTimeLine extends Div {

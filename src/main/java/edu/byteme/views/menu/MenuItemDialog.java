@@ -21,7 +21,6 @@ public class MenuItemDialog extends Dialog {
             DateTimeFormatter.ofPattern("dd MMMM, yyyy");
 
     public MenuItemDialog(MenuItem item) {
-        // Header
         setHeaderTitle(item.getName());
 
         NumberFormat currencyFormat = NumberFormat.getNumberInstance(Locale.US);
@@ -29,7 +28,6 @@ public class MenuItemDialog extends Dialog {
         currencyFormat.setMaximumFractionDigits(2);
         String formattedPrice = currencyFormat.format(item.getPrice());
 
-        // Description, Price, Availability, CreatedAt
         Paragraph desc = new Paragraph("Description:\n" + item.getDescription());
         Paragraph price = new Paragraph("Price:\n" + formattedPrice + "\u00A0$");
         Paragraph available = new Paragraph("Still available:\n" +
@@ -37,7 +35,6 @@ public class MenuItemDialog extends Dialog {
         Paragraph since = new Paragraph("Since:\n" +
                 item.getCreatedAt().format(DATE_FORMATTER));
 
-        // Layout für Text
         VerticalLayout textLayout = new VerticalLayout(desc, price, available, since);
         textLayout.setPadding(false);
         textLayout.setSpacing(false);
@@ -46,7 +43,6 @@ public class MenuItemDialog extends Dialog {
                 .set("width", "18rem")
                 .set("max-width", "100%");
 
-        // Bild und Text nebeneinander
         Image img = new Image(Util.getPathFromName(item.getName()), "Menu image");
         img.setMaxHeight("18rem"); // optional: maximale Höhe festlegen
         HorizontalLayout body = new HorizontalLayout(img, textLayout);
@@ -55,11 +51,10 @@ public class MenuItemDialog extends Dialog {
 
         add(body);
 
-        // Footer mit Close-Button
+        // Footer with close button
         Button closeButton = new Button("Close", e -> this.close());
         getFooter().add(closeButton);
 
-        // Automatisch öffnen, sobald die Komponente dem UI hinzugefügt wird
         this.open();
     }
 
