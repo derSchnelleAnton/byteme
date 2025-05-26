@@ -8,9 +8,9 @@ import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.ListItem;
 import com.vaadin.flow.component.html.Nav;
 import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.html.UnorderedList;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
-import com.vaadin.flow.component.html.UnorderedList;
 import com.vaadin.flow.router.Layout;
 import com.vaadin.flow.router.RouterLink;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
@@ -27,6 +27,7 @@ import com.vaadin.flow.theme.lumo.LumoUtility.Padding;
 import com.vaadin.flow.theme.lumo.LumoUtility.TextColor;
 import com.vaadin.flow.theme.lumo.LumoUtility.Whitespace;
 
+import edu.byteme.views.admin.AdminDashboardView;
 import jakarta.annotation.security.PermitAll;
 
 import org.springframework.security.core.Authentication;
@@ -50,8 +51,10 @@ public class MainLayout extends AppLayout {
 
         public MenuItemInfo(String menuTitle, Component icon, Class<? extends Component> view) {
             this.view = view;
+
             RouterLink link = new RouterLink();
-            link.addClassNames(Display.FLEX, Gap.XSMALL, Height.MEDIUM, AlignItems.CENTER, Padding.Horizontal.SMALL, TextColor.BODY);
+            link.addClassNames(Display.FLEX, Gap.XSMALL, Height.MEDIUM, AlignItems.CENTER,
+                    Padding.Horizontal.SMALL, TextColor.BODY);
             link.setRoute(view);
 
             Span text = new Span(menuTitle);
@@ -78,50 +81,51 @@ public class MainLayout extends AppLayout {
         HorizontalLayout header = new HorizontalLayout();
         header.setWidthFull();
         header.setPadding(true);
-        header.setAlignItems(FlexComponent.Alignment.CENTER); // Vertikale Ausrichtung
+        header.setAlignItems(FlexComponent.Alignment.CENTER); // Vertically align items
 
-        // Linke Seite des Headers (kann für ein Logo oder Navigation verwendet werden)
+        // Left side of the header – typically for logo or navigation
         Div title = new Div();
-        title.setText("ByteMe" + " - Ordering System");
-        title.getStyle().set("color", "#006AF5").set("font-weight", "bold").set("font-size", "large");
+        title.setText("ByteMe - Ordering System");
+        title.getStyle().set("color", "#006AF5")
+                .set("font-weight", "bold")
+                .set("font-size", "large");
 
-        // Rechte Seite des Headers — Benutzerinfo und Login/Logout-Button
+        // Right side of the header – user info and login/logout button
         HorizontalLayout userInfoLayout = new HorizontalLayout();
-        userInfoLayout.setAlignItems(FlexComponent.Alignment.CENTER); // Vertikale Ausrichtung
+        userInfoLayout.setAlignItems(FlexComponent.Alignment.CENTER);
         userInfoLayout.setSpacing(true);
 
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
         if (auth != null) {
-            System.out.println("Aktuelle Rollen: " + auth.getAuthorities());
+            System.out.println("Current roles: " + auth.getAuthorities());
 
-            // Beispielhafte Prüfung:
+            // Example role check
             boolean isAdmin = auth.getAuthorities().stream()
                     .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
 
             if (isAdmin) {
-                System.out.println("Benutzer ist Admin");
+                System.out.println("User is admin");
             }
         }
 
         try {
             var user = securityService.getAuthenticatedUser();
             if (user != null) {
-                // Benutzer authentifiziert
+                // User is authenticated
                 Span greeting = new Span("Hello " + user.getUsername());
                 Button logoutButton = new Button("Logout", event -> {
                     securityService.logout();
                     UI.getCurrent().getPage().reload();
                 });
 
-                // UI-sicherer Zugriff
                 UI ui = UI.getCurrent();
                 ui.access(() -> {
-                    userInfoLayout.removeAll(); // Bereinigung
-                    userInfoLayout.add(greeting, logoutButton); // Hinzufügen neuer UI-Elemente
+                    userInfoLayout.removeAll(); // Clear old UI elements
+                    userInfoLayout.add(greeting, logoutButton);
                 });
             } else {
-                // Benutzer nicht authentifiziert (Login anzeigen)
+                // User not authenticated – show login button
                 Button loginButton = new Button("Login", event -> UI.getCurrent().navigate("login"));
 
                 UI ui = UI.getCurrent();
@@ -131,7 +135,7 @@ public class MainLayout extends AppLayout {
                 });
             }
         } catch (Exception e) {
-            // Fehler behandeln
+            // Handle unexpected errors
             UI.getCurrent().access(() -> {
                 userInfoLayout.removeAll();
                 Button loginButton = new Button("Login", event -> UI.getCurrent().navigate("login"));
@@ -139,9 +143,7 @@ public class MainLayout extends AppLayout {
             });
         }
 
-        // Platz zwischen Titel und Benutzerinformation
-
-
+        // Navigation bar (currently not populated with menu items)
         Nav nav = new Nav();
         nav.addClassNames(Display.FLEX, Overflow.AUTO, Padding.Horizontal.MEDIUM, Padding.Vertical.XSMALL);
 
@@ -149,19 +151,20 @@ public class MainLayout extends AppLayout {
         list.addClassNames(Display.FLEX, Gap.SMALL, ListStyleType.NONE, Margin.NONE, Padding.NONE);
         nav.add(list);
 
+
         for (MenuItemInfo menuItem : createMenuItems()) {
             list.add(menuItem);
         }
 
+
         header.add(title);
         header.add(nav);
         header.add(userInfoLayout);
-        header.expand(title); // Titel nimmt den verbliebenen Platz ein
+        header.expand(title); // Let title take up remaining space
         header.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
 
         return header;
     }
-
 
     private MenuItemInfo[] createMenuItems() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -170,17 +173,12 @@ public class MainLayout extends AppLayout {
 
         List<MenuItemInfo> items = new ArrayList<>();
 
-        /*
-        // Standardmenü für alle Benutzer
-        items.add(new MenuItemInfo("Menu", LineAwesomeIcon.UTENSILS_SOLID.create(), Frame.class));
-
-
-        // Nur für Admins:
+        // You can add conditional menu items here based on user roles
+        // Example:
         if (isAdmin) {
-            items.add(new MenuItemInfo("Admin", LineAwesomeIcon.TACHOMETER_ALT_SOLID.create(), AdminDashboardView.class));
-            items.add(new MenuItemInfo("Orders", LineAwesomeIcon.BOX_OPEN_SOLID.create(), OrderView.class));
+            items.add(new MenuItemInfo("Admin Dashboard", null, AdminDashboardView.class));
         }
-         */
+
         return items.toArray(new MenuItemInfo[0]);
     }
 }

@@ -26,6 +26,7 @@ Thumbs.db
 *.log
 *.tmp
 hs_err_pid*.log
+.vaadin-node-tasks*.lock
 
 # ======================================
 # 5) Vaadin and frontend-related generated files
