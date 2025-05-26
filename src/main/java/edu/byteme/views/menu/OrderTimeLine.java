@@ -1,4 +1,4 @@
-package edu.byteme.views.orders;
+package edu.byteme.views.menu;
 
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H2;
