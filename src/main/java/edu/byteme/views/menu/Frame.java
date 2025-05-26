@@ -1,6 +1,5 @@
 package edu.byteme.views.menu;
 
-import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.Div;
@@ -27,7 +26,6 @@ import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
-import org.vaadin.lineawesome.LineAwesomeIcon;
 
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -47,7 +45,7 @@ public class Frame extends VerticalLayout {
     private final OrderService orderService;
     private Page currentPage;
     private final MenuRepository menuRepository;
-    private final VerticalLayout footer;
+    private final VerticalLayout header;
 
     @Autowired
     public Frame(
@@ -61,12 +59,12 @@ public class Frame extends VerticalLayout {
         this.clientRepository = clientRepository;
         this.orderService = orderService;
 
-        // Footer
-        footer = new VerticalLayout();
-        footer.setVisible(true);
-        footer.setWidthFull();
-        footer.setMaxWidth("1000px");
-        footer.setAlignItems(FlexComponent.Alignment.CENTER);
+        // header
+        header = new VerticalLayout();
+        header.setVisible(true);
+        header.setWidthFull();
+        header.setMaxWidth("1000px");
+        header.setAlignItems(FlexComponent.Alignment.CENTER);
 
         // Base layout configuration
         setSizeFull();
@@ -86,7 +84,6 @@ public class Frame extends VerticalLayout {
         contentArea.setSpacing(false);
         contentArea.setHeightFull();
         contentArea.getStyle().set("overflow", "auto").set("padding", "1rem");
-
 
         // Shopping cart
         cartPanel.setHeightFull();
@@ -135,9 +132,9 @@ public class Frame extends VerticalLayout {
         // Registering watcher for orders
         cartPanel.setOnOrderSelected(this::switchToOrders);
 
-        contentArea.add(footer, content);
+        contentArea.add(header, content);
         contentArea.expand(content);
-        contentArea.setHorizontalComponentAlignment(Alignment.CENTER, footer);
+        contentArea.setHorizontalComponentAlignment(Alignment.CENTER, header);
 
         add(contentLayout);
         expand(contentLayout);
@@ -158,23 +155,18 @@ public class Frame extends VerticalLayout {
         content.setItems(order.getMenuItems());
         content.setActionText("More");
         currentPage = Page.ORDERS;
-        if(!footer.isVisible())
-            footer.setVisible(true);
-        footer.removeAll();
+        header.setVisible(true);
+        header.removeAll();
         cartPanel.setVisible(false);
-        footer.add(getFooterButtons(Page.MENU));
-        footer.add(new OrderTimeLine(order));
-
-        double totalPriceValue = 0.0;
-        for (MenuItem item : cartItems)
-            totalPriceValue += item.getPrice();
+        header.add(getHeaderButtons(Page.MENU));
+        header.add(new OrderTimeLine(order));
 
         NumberFormat currencyFormat = NumberFormat.getNumberInstance(Locale.US);
         currencyFormat.setMinimumFractionDigits(2);
         currencyFormat.setMaximumFractionDigits(2);
-        String formattedPrice = currencyFormat.format(totalPriceValue);
+        String formattedPrice = currencyFormat.format(OrderService.getTotalCostOfOrder(order));
 
-        // Layout für Total
+        // Layout for total
         HorizontalLayout totalPrice = new HorizontalLayout();
         totalPrice.setWidthFull();
         totalPrice.setJustifyContentMode(JustifyContentMode.END); // wichtig!
@@ -187,7 +179,7 @@ public class Frame extends VerticalLayout {
                 .set("color", "#006AF5");
 
         totalPrice.add(totalText);
-        footer.add(totalPrice);
+        header.add(totalPrice);
     }
 
     /**
@@ -198,9 +190,9 @@ public class Frame extends VerticalLayout {
         content.setItems(menuItems);
         content.setActionText("Add to cart");
         currentPage = Page.MENU;
-        footer.removeAll();
-        footer.setWidthFull();
-        footer.setVisible(true);
+        header.removeAll();
+        header.setWidthFull();
+        header.setVisible(true);
         cartPanel.setVisible(true);
     }
 
@@ -211,24 +203,22 @@ public class Frame extends VerticalLayout {
         content.setItems(cartItems);
         content.setActionText(null);
         currentPage = Page.CART;
-
-        if (!footer.isVisible())
-            footer.setVisible(true);
-
-        footer.removeAll();
+        header.setVisible(true);
+        header.removeAll();
         cartPanel.setVisible(false);
-        footer.add(getFooterButtons(Page.ORDERS));
+        header.add(getHeaderButtons(Page.ORDERS));
 
         double totalPriceValue = 0.0;
-        for (MenuItem item : cartItems)
+        for (MenuItem item : cartItems) {
             totalPriceValue += item.getPrice();
+        }
 
         NumberFormat currencyFormat = NumberFormat.getNumberInstance(Locale.US);
         currencyFormat.setMinimumFractionDigits(2);
         currencyFormat.setMaximumFractionDigits(2);
         String formattedPrice = currencyFormat.format(totalPriceValue);
 
-        // Layout für Total
+        // Layout for total
         HorizontalLayout totalPrice = new HorizontalLayout();
         totalPrice.setWidthFull();
         totalPrice.setJustifyContentMode(JustifyContentMode.END); // wichtig!
@@ -241,7 +231,7 @@ public class Frame extends VerticalLayout {
                 .set("color", "#006AF5");
 
         totalPrice.add(totalText);
-        footer.add(totalPrice);
+        header.add(totalPrice);
     }
 
     /**
@@ -259,19 +249,18 @@ public class Frame extends VerticalLayout {
      * @param currentPage Determines wheter order-button shows or not
      * @return Two button element (back and order)
      */
-    private HorizontalLayout getFooterButtons(Page currentPage) {
+    private HorizontalLayout getHeaderButtons(Page currentPage) {
         HorizontalLayout buttonLayout = new HorizontalLayout();
         buttonLayout.setSpacing(true);
         buttonLayout.setWidthFull();
-        buttonLayout.getStyle()
-                .set("padding", "16px");
+        buttonLayout.getStyle().set("padding", "16px");
 
         Button backButton = new Button("Back", new Icon(VaadinIcon.ARROW_LEFT));
         backButton.setIconAfterText(false);
         backButton.addClickListener(event -> switchToMenu());
 
         Button orderButton = new Button("Order", new Icon(VaadinIcon.MONEY));
-        backButton.setIconAfterText(false);
+        orderButton.setIconAfterText(false);
         orderButton.addClickListener(event -> {
             switchToMenu();
 

@@ -1,11 +1,9 @@
 package edu.byteme.views.menu;
 
-import com.vaadin.flow.component.ComponentEventListener;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.details.Details;
 import com.vaadin.flow.component.html.Div;
-import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
@@ -65,13 +63,6 @@ public class CartComponent extends HorizontalLayout {
                 .set("box-sizing", "border-box");
         leftSide.setHeightFull();
         leftSide.setAlignItems(FlexComponent.Alignment.CENTER);
-        //leftSide.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
-
-
-        //Image iconImage = new Image("images/right.png", "images/right.png");
-        //iconImage.setWidth("25px");
-
-        //leftSide.add(iconImage);
 
         Paragraph sidebarLabel = new Paragraph("🛒");
 
@@ -92,7 +83,6 @@ public class CartComponent extends HorizontalLayout {
 
             rightSide.setVisible(!wasVisible);
             rightSide.setWidth(wasVisible ? "0px" : "300px");
-            //iconImage.getStyle().set("transform", wasVisible ? "rotate(180deg)" : "rotate(0deg)");
         });
 
         rightSide.add(cartDetails);
