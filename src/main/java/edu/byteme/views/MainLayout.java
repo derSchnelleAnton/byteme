@@ -27,14 +27,10 @@ import com.vaadin.flow.theme.lumo.LumoUtility.Padding;
 import com.vaadin.flow.theme.lumo.LumoUtility.TextColor;
 import com.vaadin.flow.theme.lumo.LumoUtility.Whitespace;
 
-import edu.byteme.views.admin.AdminDashboardView;
-import edu.byteme.views.menu.Frame;
 import jakarta.annotation.security.PermitAll;
-import edu.byteme.views.orders.OrderView;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.vaadin.lineawesome.LineAwesomeIcon;
 
 import edu.byteme.security.SecurityService;
 
