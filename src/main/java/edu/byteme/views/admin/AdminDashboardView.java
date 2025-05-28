@@ -43,7 +43,6 @@ import java.util.*;
 @RolesAllowed("ADMIN")
 @CssImport("./themes/my-app/menu-view.css")
 public class AdminDashboardView extends VerticalLayout {
-
     private final MenuService menuService;
     private final OrderService orderService;
     private final VerticalLayout central = new VerticalLayout();
