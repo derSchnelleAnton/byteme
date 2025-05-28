@@ -1,12 +1,11 @@
 package edu.byteme.views.menu;
 
-import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.Div;
-import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Paragraph;
+import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -18,23 +17,19 @@ import edu.byteme.data.entities.MenuItem;
 import edu.byteme.data.entities.Order;
 import edu.byteme.data.repositories.ClientRepository;
 import edu.byteme.data.repositories.MenuRepository;
-import edu.byteme.data.repositories.UserRepository;
-import edu.byteme.events.OrderBroadcaster;
 import edu.byteme.services.OrderService;
-import edu.byteme.util.Util;
 import edu.byteme.views.MainLayout;
-import edu.byteme.views.orders.OrderTimeLine;
 import jakarta.annotation.security.PermitAll;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
-import org.vaadin.lineawesome.LineAwesomeIcon;
 
-import java.time.format.DateTimeFormatter;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 
 @PageTitle("Menu")
@@ -44,70 +39,60 @@ import java.util.Optional;
 public class Frame extends VerticalLayout {
     private final List<MenuItem> cartItems = new ArrayList<>(); // No reason why this is up here but don't want to break anything so it stays
     private final CartComponent cartPanel;
-    private final MenuListView orderView;
+    private final LargeListComponent content;
     private final ClientRepository clientRepository;
     private final OrderService orderService;
-    //private final OrderService orderService;
     private Page currentPage;
     private final MenuRepository menuRepository;
-    private final Div footer;
-    private final Component fab;
-
+    private final VerticalLayout header;
 
     @Autowired
-    public Frame(MenuRepository menuRepository,
-                 CartComponent cartPanel,
-                 OrderService orderService,
-                 ClientRepository clientRepository) {
+    public Frame(
+            MenuRepository menuRepository,
+            CartComponent cartPanel,
+            OrderService orderService,
+            ClientRepository clientRepository
+    ) {
         this.cartPanel = cartPanel;
         this.menuRepository = menuRepository;
-        footer = new Div();
-        footer.addClassName("footer");
-        footer.setVisible(false);
-        fab = addHomeRouter();
-        add(fab);
+        this.clientRepository = clientRepository;
+        this.orderService = orderService;
 
+        // header
+        header = new VerticalLayout();
+        header.setVisible(true);
+        header.setWidthFull();
+        header.setMaxWidth("1000px");
+        header.setAlignItems(FlexComponent.Alignment.CENTER);
+
+        // Base layout configuration
         setSizeFull();
         setPadding(false);
         setSpacing(false);
 
-        // contentLayout makes content display on left hand side and cart on right hand side
+        // Content layout is the frame that contains everything
         HorizontalLayout contentLayout = new HorizontalLayout();
         contentLayout.setSizeFull();
         contentLayout.setPadding(false);
         contentLayout.setSpacing(false);
 
+        // Content area contains the actual content
         VerticalLayout contentArea = new VerticalLayout();
         contentArea.setSizeFull();
         contentArea.setPadding(true);
         contentArea.setSpacing(false);
         contentArea.setHeightFull();
-        contentArea.getStyle().set("overflow", "auto");
+        contentArea.getStyle().set("overflow", "auto").set("padding", "1rem");
 
+        // Shopping cart
         cartPanel.setHeightFull();
-
         contentLayout.add(contentArea, cartPanel);
         contentLayout.expand(contentArea);
 
-
-        // try to register OrderBroadcaster
-        OrderBroadcaster.register(o->{
-            System.out.println("orders status updated");
-            cartPanel.refreshOrders();
-            if(currentPage != null && currentPage == Page.ORDERS) {
-                switchToOrders(o);
-            }
-        });
-
-        /*
-         * Below are cart callback functions that are required for the add to cart functionality
-         * and proceed to order button
-         */
         cartPanel.displayCart(cartItems);
 
         cartPanel.setOnCheckoutClicked(() -> {
             if (isUserLoggedIn()) {
-                //switchToMenu();
                 switchToPlaceOrder();
             } else {
                 UI.getCurrent().navigate("login");
@@ -129,111 +114,123 @@ public class Frame extends VerticalLayout {
             cartPanel.displayCart(cartItems);
         });
 
-        /*
-         * Below is code for the actual content (left hand side) of the screen
-         * @TINSAE
-         * DONE
-         */
-        orderView = new MenuListView();
+        content = new LargeListComponent();
         switchToMenu();
-        orderView.setMenuItemEvent(item -> {
-            switch (currentPage){
-                case MENU: {
+
+        content.setMenuItemEvent(item -> {
+            switch (currentPage) {
+                case MENU -> {
                     cartItems.add(item);
                     cartPanel.displayCart(cartItems);
-                    break;
-                }case ORDERS:{
-                    openDialog(item);
                 }
-                // place order doesnt have a button
+                case ORDERS
+                        -> new MenuItemDialog(item).show(this);
             }
         });
 
-        // but here we only need register as observers
+        // Registering watcher for orders
         cartPanel.setOnOrderSelected(this::switchToOrders);
 
-        /*
-         * Below everything is put together
-         */
-        contentArea.add(orderView);
+        contentArea.add(header, content);
+        contentArea.expand(content);
+        contentArea.setHorizontalComponentAlignment(Alignment.CENTER, header);
+
         add(contentLayout);
         expand(contentLayout);
-        contentArea.add(footer);
-        contentArea.expand(orderView);
-        contentArea.setHorizontalComponentAlignment(Alignment.CENTER, footer);
-        this.clientRepository = clientRepository;
-        this.orderService = orderService;
     }
 
+    /**
+     * Enum for all pages a non-admin user can possibly navigate to
+     */
+    enum Page {
+        MENU, ORDERS, CART
+    }
+
+    /**
+     * Switches to order view
+     * @param order to be displayed
+     */
     private void switchToOrders(Order order) {
-        System.out.println("switchToOrders");
-        orderView.setItems(order.getMenuItems());
-        orderView.setActionText("More");
+        content.setItems(order.getMenuItems());
+        content.setActionText("More");
         currentPage = Page.ORDERS;
-        if(!footer.isVisible()) {
-            footer.setVisible(true);
-        }
-        footer.removeAll();
-        OrderTimeLine timeline = new OrderTimeLine(order);
-        footer.add(timeline);
-        fab.setVisible(currentPage == Page.ORDERS);
+        header.setVisible(true);
+        header.removeAll();
+        cartPanel.setVisible(false);
+        header.add(getHeaderButtons(Page.MENU));
+        header.add(new OrderTimeLine(order));
 
+        NumberFormat currencyFormat = NumberFormat.getNumberInstance(Locale.US);
+        currencyFormat.setMinimumFractionDigits(2);
+        currencyFormat.setMaximumFractionDigits(2);
+        String formattedPrice = currencyFormat.format(OrderService.getTotalCostOfOrder(order));
+
+        // Layout for total
+        HorizontalLayout totalPrice = new HorizontalLayout();
+        totalPrice.setWidthFull();
+        totalPrice.setJustifyContentMode(JustifyContentMode.END); // wichtig!
+        totalPrice.setAlignItems(Alignment.CENTER);
+
+        Paragraph totalText = new Paragraph("Total: " + formattedPrice + "\u00A0$");
+        totalText.getStyle()
+                .set("font-weight", "bold")
+                .set("margin", "0")
+                .set("color", "#006AF5");
+
+        totalPrice.add(totalText);
+        header.add(totalPrice);
     }
 
-    private void switchToMenu(){
+    /**
+     * Switches to menu view
+     */
+    private void switchToMenu() {
         List<MenuItem> menuItems = menuRepository.findByIsAvailableTrue();
-        orderView.setItems(menuItems);
-        orderView.setActionText("Add to cart");
+        content.setItems(menuItems);
+        content.setActionText("Add to cart");
         currentPage = Page.MENU;
-        footer.removeAll();
-        footer.setWidthFull();
-        footer.setVisible(false);
-        fab.setVisible(currentPage == Page.ORDERS);
-
+        header.removeAll();
+        header.setWidthFull();
+        header.setVisible(true);
+        cartPanel.setVisible(true);
     }
 
-    private void switchToPlaceOrder(){
-        orderView.setItems(cartItems);
-        orderView.setActionText(null);
+    /**
+     * Switches to place-order view
+     */
+    private void switchToPlaceOrder() {
+        content.setItems(cartItems);
+        content.setActionText(null);
         currentPage = Page.CART;
-        if(!footer.isVisible()) {
-            footer.setVisible(true);
+        header.setVisible(true);
+        header.removeAll();
+        cartPanel.setVisible(false);
+        header.add(getHeaderButtons(Page.ORDERS));
+
+        double totalPriceValue = 0.0;
+        for (MenuItem item : cartItems) {
+            totalPriceValue += item.getPrice();
         }
-        footer.removeAll();
-        footer.add(createButtons());
-        fab.setVisible(currentPage == Page.ORDERS);
 
+        NumberFormat currencyFormat = NumberFormat.getNumberInstance(Locale.US);
+        currencyFormat.setMinimumFractionDigits(2);
+        currencyFormat.setMaximumFractionDigits(2);
+        String formattedPrice = currencyFormat.format(totalPriceValue);
 
-    }
+        // Layout for total
+        HorizontalLayout totalPrice = new HorizontalLayout();
+        totalPrice.setWidthFull();
+        totalPrice.setJustifyContentMode(JustifyContentMode.END); // wichtig!
+        totalPrice.setAlignItems(Alignment.CENTER);
 
+        Paragraph totalText = new Paragraph("Total: " + formattedPrice + "\u00A0$");
+        totalText.getStyle()
+                .set("font-weight", "bold")
+                .set("margin", "0")
+                .set("color", "#006AF5");
 
-    private Component createButtons(){
-        HorizontalLayout buttonLayout = new HorizontalLayout();
-        buttonLayout.setSpacing(true);
-        buttonLayout.getStyle()
-                .set("padding", "16px")
-                .set("justify-content", "space-around");
-        buttonLayout.setJustifyContentMode(JustifyContentMode.CENTER);
-        buttonLayout.setWidthFull();
-        Button backButton = new Button("Back");
-        backButton.addClickListener(event -> {
-            switchToMenu();
-        });
-        Button orderButton = new Button("Order");
-        orderButton.addClickListener(event -> {
-            switchToMenu();
-            // we get username from security context
-            User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-            // we use UserRepository to get Client
-            Optional<Client> client = clientRepository.findByUserName(currentUser.getUsername());
-            // if client is available we place order in clients name
-            client.ifPresent(value -> orderService.placeOrder(cartItems, value));
-            cartItems.clear();
-            cartPanel.displayCart(cartItems);
-            cartPanel.refreshOrders();
-        });
-        buttonLayout.add(backButton, orderButton);
-        return buttonLayout;
+        totalPrice.add(totalText);
+        header.add(totalPrice);
     }
 
     /**
@@ -246,46 +243,48 @@ public class Frame extends VerticalLayout {
                 && !(authentication instanceof AnonymousAuthenticationToken);
     }
 
-    enum Page{
-        MENU, ORDERS, CART
-    }
+    /**
+     *
+     * @param currentPage Determines wheter order-button shows or not
+     * @return Two button element (back and order)
+     */
+    private HorizontalLayout getHeaderButtons(Page currentPage) {
+        HorizontalLayout buttonLayout = new HorizontalLayout();
+        buttonLayout.setSpacing(true);
+        buttonLayout.setWidthFull();
+        buttonLayout.getStyle().set("padding", "16px");
 
+        Button backButton = new Button("Back", new Icon(VaadinIcon.ARROW_LEFT));
+        backButton.setIconAfterText(false);
+        backButton.addClickListener(event -> switchToMenu());
 
-    // to show dialog
-    private void openDialog(MenuItem item) {
-        Dialog dialog = new Dialog();
-        dialog.setHeaderTitle(item.getName());
-
-        Paragraph desc      = new Paragraph("Description : " + item.getDescription());
-        Paragraph price     = new Paragraph("Price : " + item.getPrice());
-        Paragraph available = new Paragraph("Still available : " + (item.isAvailable() ? "Yes" : "No"));
-        Paragraph since     = new Paragraph("Since : "
-                + item.getCreatedAt().format(DateTimeFormatter.ofPattern("dd MMMM, yyyy")));
-
-        VerticalLayout dialogLayout = new VerticalLayout(desc, price, available, since);
-        dialogLayout.setPadding(false);
-        dialogLayout.setSpacing(false);
-        dialogLayout.setAlignItems(FlexComponent.Alignment.STRETCH);
-        dialogLayout.getStyle().set("width", "18rem").set("max-width", "100%");
-
-        HorizontalLayout body = new HorizontalLayout();
-        body.setPadding(false);
-        Image img = new Image(Util.getPathFromName(item.getName()), "Menu image");
-        body.add(img, dialogLayout);
-        dialog.add(body);
-
-        dialog.getFooter().add(new com.vaadin.flow.component.button.Button("Close", e -> dialog.close()));
-        add(dialog);
-        dialog.open();
-    }
-
-    // return button for OrdersView
-    private Component addHomeRouter() {
-        Button fab = new Button(LineAwesomeIcon.ARROW_LEFT_SOLID.create(), e -> {
+        Button orderButton = new Button("Order", new Icon(VaadinIcon.MONEY));
+        orderButton.setIconAfterText(false);
+        orderButton.addClickListener(event -> {
             switchToMenu();
-        });
-        fab.addClassName("fab");
-        return fab;
-    }
 
+            User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            Optional<Client> client = clientRepository.findByUserName(currentUser.getUsername());
+
+            client.ifPresent(value -> orderService.placeOrder(cartItems, value));
+
+            cartItems.clear();
+            cartPanel.displayCart(cartItems);
+            cartPanel.refreshOrders();
+        });
+
+        Div spacer = new Div();
+        spacer.setWidthFull();
+
+        if (currentPage == Page.ORDERS) {
+            buttonLayout.add(backButton, spacer, orderButton);
+        } else {
+            buttonLayout.add(backButton, spacer);
+        }
+
+        buttonLayout.setAlignItems(Alignment.CENTER);
+        buttonLayout.expand(spacer);
+
+        return buttonLayout;
+    }
 }
