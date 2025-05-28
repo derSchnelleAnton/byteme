@@ -12,7 +12,6 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.savedrequest.NullRequestCache;
 
 @Configuration
@@ -23,32 +22,22 @@ public class SecurityConfig extends VaadinWebSecurity {
 
     public SecurityConfig(CustomUserDetailsService customUserDetailsService) {
         this.customUserDetailsService = customUserDetailsService;
-    }
+    }    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+        super.configure(http);
 
-    @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-
-        http.csrf(csrf -> csrf.ignoringRequestMatchers(
-                "/VAADIN/**", "/UIDL/**", "/frontend/**", "/images/**", "/icons/**", "/favicon.ico"
-        ));
-
-        http.requestCache(requestCache -> requestCache
-                .requestCache(new NullRequestCache())
-        );
-
-        http.authorizeHttpRequests(authz -> authz
-                .requestMatchers(
+        http.csrf(csrf -> csrf
+                .ignoringRequestMatchers(
                         "/VAADIN/**", "/UIDL/**", "/frontend/**",
                         "/images/**", "/icons/**", "/favicon.ico"
-                ).permitAll()
-        );
+                ));
 
-        super.configure(http);
-        return http.build();
-    }
+        http.headers(headers -> headers
+                .frameOptions(frameOptions -> frameOptions.disable()));
 
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
+        http.requestCache(requestCache -> requestCache
+                .requestCache(new NullRequestCache()));
+
         setLoginView(http, LoginView.class, "/menu");
     }
 
